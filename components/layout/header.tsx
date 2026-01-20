@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/store/cart";
 
+import Image from "next/image";
+
 export function Header() {
   const { openCart, getItemCount } = useCartStore();
   const [mounted, setMounted] = useState(false);
@@ -19,10 +21,22 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-4 md:px-6">
+      <div className="mx-auto flex h-28 max-w-[1200px] items-center justify-between px-4 md:px-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2">
-          <span className="text-xl font-bold text-primary">TN Home</span>
+        <Link href="/" className="flex items-center gap-4 group">
+          <div className="relative h-20 w-20 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition-transform duration-300 group-hover:scale-105 group-active:scale-95">
+            <Image
+              src="/app-logo.jpg"
+              alt="TN Home"
+              fill
+              className="object-cover p-1"
+              sizes="80px"
+              priority
+            />
+          </div>
+          <span className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent hidden sm:block">
+            TN Home
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
