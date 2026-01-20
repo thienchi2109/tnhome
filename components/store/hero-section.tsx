@@ -13,7 +13,7 @@ export function HeroSection() {
         <div className="relative h-[500px] w-full overflow-hidden bg-muted">
           {/* Fallback color/placeholder if image fails */}
           <Image
-            src="https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=2670&auto=format&fit=crop"
+            src="/home-hero.png"
             alt="Minimalist Living Room"
             fill
             className="object-cover"
@@ -42,7 +42,7 @@ export function HeroSection() {
       {/* Desktop Layout: Overlay or Split */}
       <div className="hidden md:block relative h-[85vh] w-full">
         <Image
-          src="https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=2670&auto=format&fit=crop"
+          src="/home-hero.png"
           alt="Minimalist Living Room"
           fill
           className="object-cover"
