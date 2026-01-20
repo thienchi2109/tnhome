@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ShoppingBag, Search, Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,14 +10,14 @@ import { useCartStore } from "@/store/cart";
 import Image from "next/image";
 
 export function Header() {
-  const { openCart, getItemCount } = useCartStore();
-  const [mounted, setMounted] = useState(false);
+  const { openCart } = useCartStore();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const itemCount = mounted ? getItemCount() : 0;
+  // Use useSyncExternalStore for SSR-safe cart count
+  const itemCount = useSyncExternalStore(
+    useCartStore.subscribe,
+    () => useCartStore.getState().getItemCount(),
+    () => 0 // Server snapshot - return 0 during SSR
+  );
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

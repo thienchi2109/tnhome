@@ -8,11 +8,9 @@ export function ProductGrid() {
                 <ProductCard
                     key={i}
                     id={i.toString()}
-                    index={i}
                     name={`Minimalist Vase ${i}`}
                     price={500000}
                     description="Matte finish ceramic, available in white"
-                    image=""
                 />
             ))}
         </div>

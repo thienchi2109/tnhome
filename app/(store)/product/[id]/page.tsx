@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { formatPrice, cn } from "@/lib/utils";
-import { ArrowLeft, ChevronRight, Minus, Plus, Share2, Star } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Share2, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -22,7 +22,7 @@ const product = {
     ]
 };
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
+export default function ProductDetailPage() {
     return (
         <div className="min-h-screen pb-16 md:pb-24">
             {/* Breadcrumb / Back Navigation */}

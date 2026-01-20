@@ -1,6 +1,5 @@
 import { ProductGrid } from "@/components/product/product-grid";
 import { SectionHeader } from "@/components/store/section-header";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 

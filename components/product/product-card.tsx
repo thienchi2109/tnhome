@@ -3,18 +3,15 @@
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 interface ProductCardProps {
     id: string;
     name: string;
     price: number;
     description: string;
-    image: string;
-    index: number;
 }
 
-export function ProductCard({ id, name, price, description, image, index }: ProductCardProps) {
+export function ProductCard({ id, name, price, description }: ProductCardProps) {
     return (
         <Link href={`/product/${id}`} className="group flex flex-col gap-3">
             <div className="aspect-square relative overflow-hidden rounded-xl bg-muted/50">
