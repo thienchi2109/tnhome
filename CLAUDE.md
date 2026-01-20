@@ -318,6 +318,22 @@ git commit -m "feat: add feature
 Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
+## Windows Commands
+
+Use `powershell -Command` or bash syntax with forward slashes. Never mix cmd syntax.
+
+**npm/npx in PowerShell:** Always use `.cmd` suffix for npm commands:
+- `npm.cmd` instead of `npm`
+- `npx.cmd` instead of `npx`
+
+This prevents "spawn EINVAL" errors when running from PowerShell.
+
+```bash
+mkdir -p src/components/feature  # ✅ bash-style
+npm.cmd run dev                  # ✅ PowerShell npm
+npx.cmd prisma generate          # ✅ PowerShell npx
+```
+
 ## Critical Reminders
 
 1. **ALWAYS use warpgrep** for code search (not grep/Glob)
