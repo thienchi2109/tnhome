@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ShoppingBag, Search, Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,13 @@ import { useCartStore } from "@/store/cart";
 
 export function Header() {
   const { openCart, getItemCount } = useCartStore();
-  const itemCount = getItemCount();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const itemCount = mounted ? getItemCount() : 0;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
