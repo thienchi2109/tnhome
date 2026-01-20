@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice, cn } from "@/lib/utils";
 import { ArrowLeft, Minus, Plus, Share2, Star } from "lucide-react";
@@ -15,6 +18,8 @@ const product = {
         "https://images.unsplash.com/photo-1612196808214-b7e239e5f6b7?q=80&w=1000&auto=format&fit=crop",
         "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=1000&auto=format&fit=crop"
     ],
+    colors: ["White", "Terracotta", "Charcoal"],
+    sizes: ["Set of 3", "Large Only", "Medium Only"],
     details: [
         { label: "Material", value: "100% Ceramic" },
         { label: "Dimensions", value: "S: 10cm, M: 15cm, L: 20cm" },
@@ -23,6 +28,22 @@ const product = {
 };
 
 export default function ProductDetailPage() {
+    const [selectedColor, setSelectedColor] = useState(product.colors[0]);
+    const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
+    const [quantity, setQuantity] = useState(1);
+
+    const handleAddToCart = () => {
+        console.log("Added to cart:", {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            color: selectedColor,
+            size: selectedSize,
+            quantity
+        });
+        // In a real app, calls cart store here
+    };
+
     return (
         <div className="min-h-screen pb-16 md:pb-24">
             {/* Breadcrumb / Back Navigation */}
@@ -80,17 +101,49 @@ export default function ProductDetailPage() {
                             {product.description}
                         </p>
 
-                        {/* Selectors Stub */}
-                        <div className="space-y-4 pt-4 border-t border-border">
+                        {/* Selectors */}
+                        <div className="space-y-6 pt-4 border-t border-border">
+                            {/* Color Selector */}
                             <div>
-                                <label className="text-sm font-medium mb-2 block">Color</label>
-                                <div className="flex gap-2">
-                                    {["White", "Terracotta", "Charcoal"].map((color, i) => (
-                                        <button key={color} className={cn(
-                                            "px-4 py-2 border rounded-full text-sm hover:border-foreground transition-colors",
-                                            i === 0 ? "border-foreground bg-muted/20" : "border-border"
-                                        )}>
+                                <label className="text-sm font-medium mb-3 block">
+                                    Color: <span className="text-muted-foreground font-normal">{selectedColor}</span>
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                    {product.colors.map((color) => (
+                                        <button
+                                            key={color}
+                                            onClick={() => setSelectedColor(color)}
+                                            className={cn(
+                                                "px-4 py-2 border rounded-full text-sm transition-all duration-200",
+                                                selectedColor === color
+                                                    ? "border-primary bg-primary/5 text-primary ring-1 ring-primary"
+                                                    : "border-border hover:border-foreground/50"
+                                            )}
+                                        >
                                             {color}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Size Selector */}
+                            <div>
+                                <label className="text-sm font-medium mb-3 block">
+                                    Option: <span className="text-muted-foreground font-normal">{selectedSize}</span>
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                    {product.sizes.map((size) => (
+                                        <button
+                                            key={size}
+                                            onClick={() => setSelectedSize(size)}
+                                            className={cn(
+                                                "px-4 py-2 border rounded-full text-sm transition-all duration-200",
+                                                selectedSize === size
+                                                    ? "border-primary bg-primary/5 text-primary ring-1 ring-primary"
+                                                    : "border-border hover:border-foreground/50"
+                                            )}
+                                        >
+                                            {size}
                                         </button>
                                     ))}
                                 </div>
@@ -101,11 +154,26 @@ export default function ProductDetailPage() {
                         <div className="space-y-3 pt-6">
                             <div className="flex gap-4">
                                 <div className="flex items-center border border-border rounded-full px-3 h-12">
-                                    <button className="p-1 hover:bg-muted rounded-full transition-colors"><Minus className="w-4 h-4" /></button>
-                                    <span className="w-8 text-center font-medium">1</span>
-                                    <button className="p-1 hover:bg-muted rounded-full transition-colors"><Plus className="w-4 h-4" /></button>
+                                    <button
+                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                        className="p-1 hover:bg-muted rounded-full transition-colors"
+                                        disabled={quantity <= 1}
+                                    >
+                                        <Minus className="w-4 h-4" />
+                                    </button>
+                                    <span className="w-8 text-center font-medium">{quantity}</span>
+                                    <button
+                                        onClick={() => setQuantity(quantity + 1)}
+                                        className="p-1 hover:bg-muted rounded-full transition-colors"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </button>
                                 </div>
-                                <Button size="lg" className="flex-1 rounded-full h-12 text-base">
+                                <Button
+                                    size="lg"
+                                    className="flex-1 rounded-full h-12 text-base"
+                                    onClick={handleAddToCart}
+                                >
                                     Add to Cart
                                 </Button>
                                 <Button variant="outline" size="lg" className="rounded-full w-12 h-12 p-0 flex items-center justify-center">
