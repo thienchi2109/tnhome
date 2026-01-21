@@ -24,11 +24,13 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     ports:
-      - "3000:3000"
+      - "3003:3000"
     env_file:
       - .env
     environment:
       - NODE_ENV=production
+      # Override DATABASE_URL to use Docker network (postgres service name)
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/tnhome
     restart: unless-stopped
     depends_on:
       postgres:

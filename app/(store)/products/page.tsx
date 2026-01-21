@@ -1,6 +1,8 @@
 import { ProductGrid } from "@/components/product/product-grid";
 import { SectionHeader } from "@/components/store/section-header";
 
+export const dynamic = "force-dynamic";
+
 export default function ProductsPage() {
     return (
         <div className="container mx-auto px-4 py-8">
