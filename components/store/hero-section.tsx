@@ -9,7 +9,7 @@ export function HeroSection() {
     <section className="relative w-full overflow-hidden bg-background">
       {/* Mobile Layout: Stacked (Image Top, Text Bottom) */}
       <div className="flex flex-col md:hidden">
-        <div className="relative h-[500px] w-full overflow-hidden bg-muted">
+        <div className="relative h-[400px] w-full overflow-hidden bg-muted">
           {/* Fallback color/placeholder if image fails */}
           <Image
             src="/home-hero.png"
@@ -39,7 +39,7 @@ export function HeroSection() {
       </div>
 
       {/* Desktop Layout: Overlay or Split */}
-      <div className="hidden md:block relative h-[85vh] w-full">
+      <div className="hidden md:block relative h-[65vh] w-full">
         <Image
           src="/home-hero.png"
           alt="Minimalist Living Room"

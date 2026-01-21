@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
@@ -80,7 +80,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
     });
   };
 
-  const images = form.watch("images");
+  const images = useWatch({ control: form.control, name: "images" });
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -156,7 +156,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
         <div className="space-y-2">
           <Label>Category</Label>
           <Select
-            value={form.watch("category")}
+            value={useWatch({ control: form.control, name: "category" })}
             onValueChange={(value) => form.setValue("category", value)}
             disabled={isPending}
           >

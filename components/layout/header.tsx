@@ -2,16 +2,10 @@
 
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
-import { ShoppingBag, Search, Menu, User, UserPlus, Settings } from "lucide-react";
+import { ShoppingBag, Search, Menu, User, Settings, List, ChevronDown } from "lucide-react";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { useCartStore } from "@/store/cart";
 
 import Image from "next/image";
@@ -28,140 +22,160 @@ export function Header() {
 
   return (
     <TooltipProvider delayDuration={100}>
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-28 max-w-[1200px] items-center justify-between px-4 md:px-6">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-4 group">
-            <div className="relative h-20 w-20 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition-transform duration-300 group-hover:scale-105 group-active:scale-95">
-              <Image
-                src="/app-logo.jpg"
-                alt="TN Home"
-                fill
-                className="object-cover p-1"
-                sizes="80px"
-                priority
-              />
-            </div>
-            <span className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent hidden sm:block">
-              TN Home
-            </span>
-          </Link>
+      <header className="flex flex-col w-full bg-background relative z-50">
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-2">
-            <Link
-              href="/"
-              className="text-base font-medium text-foreground/80 hover:text-foreground hover:bg-muted px-4 py-2 rounded-full transition-all"
-            >
-              Home
-            </Link>
-            <Link
-              href="/products"
-              className="text-base font-medium text-foreground/80 hover:text-foreground hover:bg-muted px-4 py-2 rounded-full transition-all"
-            >
-              Products
-            </Link>
-            <Link
-              href="/about"
-              className="text-base font-medium text-foreground/80 hover:text-foreground hover:bg-muted px-4 py-2 rounded-full transition-all"
-            >
-              About
-            </Link>
-          </nav>
 
-          {/* Actions */}
-          <div className="flex items-center space-x-1 sm:space-x-2">
-            {/* Search Input - Desktop */}
-            <div className="relative hidden md:flex items-center ml-2">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="h-10 w-[200px] lg:w-[300px] rounded-full bg-muted/40 border border-transparent hover:bg-muted/60 focus:bg-background focus:border-primary pl-10 pr-4 text-sm outline-none transition-all placeholder:text-muted-foreground/70"
-              />
+        {/* Main Header */}
+        <div className="w-full border-b bg-background py-4">
+          <div className="mx-auto flex items-center justify-between gap-4 md:gap-8 px-4 md:px-6 max-w-[1400px]">
+            {/* Mobile Menu & Logo */}
+            <div className="flex items-center gap-3 md:gap-8 shrink-0">
+              <Button variant="ghost" size="icon" className="lg:hidden h-10 w-10 -ml-2">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Menu</span>
+              </Button>
+
+              <Link href="/" className="flex items-center gap-2 group shrink-0">
+                <div className="relative h-20 w-20 md:h-24 md:w-24 overflow-hidden rounded-lg bg-primary/5">
+                  <Image
+                    src="/app-logo.png"
+                    alt="TN Home"
+                    fill
+                    className="object-cover"
+                    sizes="48px"
+                    priority
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-3xl md:text-4xl font-black tracking-tight text-primary leading-none">
+                    TN Home
+                  </span>
+                  <span className="text-xs md:text-sm font-medium text-muted-foreground leading-none tracking-widest uppercase">
+                    Furniture
+                  </span>
+                </div>
+              </Link>
             </div>
 
-            {/* Auth - Show icons when signed out, UserButton when signed in */}
-            <SignedOut>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button asChild variant="ghost" size="icon" className="h-12 w-12 rounded-full hover:bg-primary/10 transition-colors">
-                    <Link href="/sign-in">
-                      <User className="h-6 w-6" />
-                      <span className="sr-only">Sign In</span>
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Sign In</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button asChild variant="ghost" size="icon" className="h-12 w-12 rounded-full hover:bg-primary/10 transition-colors">
-                    <Link href="/sign-up">
-                      <UserPlus className="h-6 w-6" />
-                      <span className="sr-only">Sign Up</span>
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Sign Up</p>
-                </TooltipContent>
-              </Tooltip>
-            </SignedOut>
-            <SignedIn>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button asChild variant="ghost" size="icon" className="h-12 w-12 rounded-full hover:bg-primary/10 transition-colors">
-                    <Link href="/admin">
-                      <Settings className="h-6 w-6" />
-                      <span className="sr-only">Admin</span>
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Admin</p>
-                </TooltipContent>
-              </Tooltip>
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: "h-10 w-10 ring-2 ring-primary/20 hover:ring-primary/40 transition-all",
-                  },
-                }}
-              />
-            </SignedIn>
+            {/* Search Bar - Centered & Prominent */}
+            <div className="hidden lg:flex flex-1 max-w-2xl mx-auto">
+              <div className="relative w-full flex items-center">
+                <div className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-12 bg-muted/50 rounded-l-full border border-r-0 border-input">
+                  <Search className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search furniture, decor, and more..."
+                  className="w-full h-11 pl-12 pr-12 bg-muted/10 border border-input focus:border-primary rounded-full outline-none text-sm transition-all focus:bg-background focus:ring-4 focus:ring-primary/10"
+                />
+                <Button
+                  size="icon"
+                  className="absolute right-1 top-1 h-9 w-9 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
+            {/* Mobile Search Icon Only */}
+            <Button variant="ghost" size="icon" className="lg:hidden ml-auto">
+              <Search className="h-6 w-6" />
+            </Button>
+
+            {/* Actions */}
+            <div className="flex items-center gap-1 md:gap-4 shrink-0">
+              <div className="hidden md:flex items-center gap-2 border-r border-border pr-4 mr-1">
+                <SignedOut>
+                  <Link href="/sign-in" className="flex items-center gap-2 hover:text-primary transition-colors text-sm font-medium">
+                    <User className="h-5 w-5" />
+                    <span>Sign In</span>
+                  </Link>
+                  <span className="text-muted-foreground">/</span>
+                  <Link href="/sign-up" className="hover:text-primary transition-colors text-sm font-medium">
+                    Sign Up
+                  </Link>
+                </SignedOut>
+
+                <SignedIn>
+                  <Link href="/admin" className="flex items-center gap-2 hover:text-primary transition-colors text-sm font-medium">
+                    <Settings className="h-5 w-5" />
+                  </Link>
+                  <div className="pl-2">
+                    <UserButton afterSignOutUrl="/" />
+                  </div>
+                </SignedIn>
+              </div>
+
+              {/* Cart */}
+              <div className="flex items-center">
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="relative h-12 w-12 rounded-full"
+                  className="relative flex items-center gap-2 md:px-4 h-11 rounded-full hover:bg-primary/5 group"
                   onClick={openCart}
                 >
-                  <ShoppingBag className="h-6 w-6" />
-                  {itemCount > 0 && (
-                    <Badge
-                      variant="destructive"
-                      className="absolute top-1 right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-                    >
-                      {itemCount > 99 ? "99+" : itemCount}
-                    </Badge>
-                  )}
-                  <span className="sr-only">Cart</span>
+                  <div className="relative">
+                    <ShoppingBag className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
+                    {itemCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white ring-2 ring-background">
+                        {itemCount > 99 ? "99+" : itemCount}
+                      </span>
+                    )}
+                  </div>
+                  <div className="hidden md:flex flex-col items-start gap-0.5 text-xs">
+                    <span className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">
+                      Cart
+                    </span>
+                  </div>
                 </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Cart</p>
-              </TooltipContent>
-            </Tooltip>
+              </div>
+            </div>
+          </div>
+        </div>
 
-            <Button variant="ghost" size="icon" className="md:hidden h-12 w-12 rounded-full">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Menu</span>
+        {/* Categories Navigation - Sticky */}
+        <div className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b shadow-sm">
+          <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-2 px-4 md:px-6 overflow-x-auto no-scrollbar">
+
+            {/* All Categories Dropdown Trigger Design */}
+            <Button className="shrink-0 gap-2 rounded-full hidden md:flex" size="sm">
+              <Menu className="h-4 w-4" />
+              <span>All Categories</span>
             </Button>
+
+            <div className="h-6 w-px bg-border mx-2 hidden md:block" />
+
+            <nav className="flex items-center gap-1 md:gap-2 w-full">
+              {[
+                { name: "Furniture", href: "/products?category=furniture" },
+                { name: "Living Room", href: "/products?category=living-room" },
+                { name: "Bedroom", href: "/products?category=bedroom" },
+                { name: "Kitchen & Dining", href: "/products?category=kitchen" },
+                { name: "Decor", href: "/products?category=decor" },
+                { name: "Lighting", href: "/products?category=lighting" },
+                { name: "Outdoor", href: "/products?category=outdoor" },
+                { name: "New Arrivals", href: "/products?sort=newest", highlight: true },
+              ].map((category) => (
+                <Link
+                  key={category.name}
+                  href={category.href}
+                  className={`
+                    whitespace-nowrap px-3 py-1.5 text-sm font-medium rounded-full transition-all border border-transparent
+                    ${category.highlight
+                      ? "text-primary bg-primary/5 hover:bg-primary/10 border-primary/20"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }
+                  `}
+                >
+                  {category.name}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="ml-auto shrink-0 hidden lg:block">
+              <Link href="/products" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
+                View All Products <ChevronDown className="h-4 w-4 -rotate-90" />
+              </Link>
+            </div>
           </div>
         </div>
       </header>
