@@ -55,7 +55,7 @@ export function HeroSection() {
           <div className="container mx-auto px-6 lg:px-12">
             <div className="max-w-xl space-y-8 pt-20">
               <h1 className="heading-hero tracking-tight text-foreground animate-fade-in-up opacity-0" style={{ animationDelay: "0.2s" }}>
-                Đơn Giản Là <br /> Đỉnh Cao Của Sự Tinh Tế.
+                Đơn Giản Là Đỉnh Cao <br /> Của Sự Tinh Tế.
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed animate-fade-in-up opacity-0" style={{ animationDelay: "0.4s" }}>
                 Khám phá bộ sưu tập sản phẩm gia dụng cao cấp.
