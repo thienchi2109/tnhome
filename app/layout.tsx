@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { CartDrawer } from "@/components/cart/cart-drawer";
@@ -34,12 +36,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={inter.variable}>
-      <body className="min-h-screen bg-background font-sans antialiased">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <CartDrawer />
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="vi" className={inter.variable}>
+        <body className="min-h-screen bg-background font-sans antialiased">
+          <Header />
+          <main className="flex-1">{children}</main>
+          <CartDrawer />
+          <Toaster position="top-center" richColors />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

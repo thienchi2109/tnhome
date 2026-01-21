@@ -1,4 +1,24 @@
 services:
+  # PostgreSQL Database (Supabase)
+  postgres:
+    image: supabase/postgres:17.6.1.072
+    container_name: tnhome-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tnhome
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Production web app (optional, for deployment)
   web:
     build:
       context: .
@@ -10,3 +30,9 @@ services:
     environment:
       - NODE_ENV=production
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

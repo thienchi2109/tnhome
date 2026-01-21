@@ -1,0 +1,154 @@
+import { AdminHeader } from "@/components/admin/admin-header";
+import { getProducts } from "@/lib/actions";
+import { formatPrice } from "@/lib/utils";
+import { Plus } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ProductActions } from "@/components/admin/product-actions";
+
+export const dynamic = "force-dynamic";
+
+export default async function ProductsPage() {
+  const products = await getProducts();
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <AdminHeader
+        title="Products"
+        description="Manage your product catalog"
+      />
+
+      <main className="flex-1 p-6 space-y-6">
+        {/* Header Actions */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              {products.length} product{products.length !== 1 ? "s" : ""} total
+            </p>
+          </div>
+          <Button asChild className="gap-2">
+            <Link href="/admin/products/new">
+              <Plus className="h-4 w-4" />
+              Add Product
+            </Link>
+          </Button>
+        </div>
+
+        {/* Products Grid/Table */}
+        {products.length > 0 ? (
+          <div className="rounded-2xl border bg-white shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b bg-muted/30">
+                    <th className="text-left p-4 font-medium text-muted-foreground text-sm">
+                      Product
+                    </th>
+                    <th className="text-left p-4 font-medium text-muted-foreground text-sm">
+                      Category
+                    </th>
+                    <th className="text-left p-4 font-medium text-muted-foreground text-sm">
+                      Price
+                    </th>
+                    <th className="text-left p-4 font-medium text-muted-foreground text-sm">
+                      Status
+                    </th>
+                    <th className="text-right p-4 font-medium text-muted-foreground text-sm">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((product) => (
+                    <tr
+                      key={product.id}
+                      className="border-b last:border-0 hover:bg-muted/20 transition-colors"
+                    >
+                      <td className="p-4">
+                        <div className="flex items-center gap-4">
+                          <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                            {product.images[0] ? (
+                              <Image
+                                src={product.images[0]}
+                                alt={product.name}
+                                fill
+                                className="object-cover"
+                                sizes="48px"
+                              />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center text-muted-foreground text-xs">
+                                No img
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground truncate max-w-[200px]">
+                              {product.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              ID: {product.id.slice(-8)}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <Badge variant="secondary" className="font-normal">
+                          {product.category}
+                        </Badge>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-medium">
+                          {formatPrice(product.price)}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <Badge
+                          variant={product.isActive ? "default" : "outline"}
+                          className={
+                            product.isActive
+                              ? "bg-green-100 text-green-800 hover:bg-green-100"
+                              : "text-muted-foreground"
+                          }
+                        >
+                          {product.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </td>
+                      <td className="p-4 text-right">
+                        <ProductActions
+                          productId={product.id}
+                          isActive={product.isActive}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border bg-white p-12 shadow-sm">
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <Plus className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="mb-1 font-semibold text-foreground">
+                No products yet
+              </h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Get started by creating your first product.
+              </p>
+              <Button asChild>
+                <Link href="/admin/products/new">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Product
+                </Link>
+              </Button>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
