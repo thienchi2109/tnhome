@@ -24,17 +24,42 @@ model Product {
   @@index([isActive])
 }
 
+model Customer {
+  id        String   @id @default(cuid())
+  userId    String?  @unique  // Clerk userId (linked when logged in)
+  name      String
+  phone     String   @unique
+  email     String?
+  address   String
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([phone])
+  @@index([userId])
+}
+
 model Order {
   id        String      @id @default(cuid())
   total     Int
   status    String      @default("PENDING")
   userId    String?
-  items     OrderItem[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  // Customer relation
+  customerId      String
+  customer        Customer @relation(fields: [customerId], references: [id])
+  // Snapshot fields for historical accuracy
+  shippingName    String
+  shippingPhone   String
+  shippingAddress String
+  notes           String?
+  items           OrderItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   @@index([userId])
   @@index([status])
+  @@index([customerId])
+  @@index([createdAt])
 }
 
 model OrderItem {

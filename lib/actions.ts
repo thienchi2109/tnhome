@@ -3,6 +3,8 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { auth } from "@clerk/nextjs/server";
+import { Prisma } from "@prisma/client";
 
 // Validation schemas
 const productSchema = z.object({
@@ -17,6 +19,35 @@ const productSchema = z.object({
 const updateProductSchema = productSchema.partial().extend({
   id: z.string().cuid(),
 });
+
+// Order validation schema
+const orderItemSchema = z.object({
+  productId: z.string().cuid("ID sản phẩm không hợp lệ"),
+  quantity: z.number().int().min(1, "Số lượng phải ít nhất 1").max(99),
+});
+
+const createOrderSchema = z.object({
+  customerName: z
+    .string()
+    .min(2, "Tên phải có ít nhất 2 ký tự")
+    .max(100, "Tên không được quá 100 ký tự"),
+  customerPhone: z
+    .string()
+    .regex(/^(0|\+84)(3|5|7|8|9)[0-9]{8}$/, "Số điện thoại không hợp lệ"),
+  customerEmail: z
+    .string()
+    .email("Email không hợp lệ")
+    .optional()
+    .or(z.literal("")),
+  customerAddress: z
+    .string()
+    .min(10, "Địa chỉ phải có ít nhất 10 ký tự")
+    .max(500, "Địa chỉ không được quá 500 ký tự"),
+  notes: z.string().max(500).optional(),
+  items: z.array(orderItemSchema).min(1, "Giỏ hàng không được trống"),
+});
+
+export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
 // Types
 type ActionResult<T = unknown> =
@@ -184,4 +215,216 @@ export async function getCategories() {
   });
 
   return categories.map((c) => c.category);
+}
+
+// ============================================
+// Order Actions
+// ============================================
+
+// Find or create customer with deduplication
+async function findOrCreateCustomer(
+  input: {
+    name: string;
+    phone: string;
+    email?: string;
+    address: string;
+  },
+  clerkUserId: string | null
+) {
+  // Priority 1: Match by phone (primary identifier)
+  let customer = await prisma.customer.findUnique({
+    where: { phone: input.phone },
+  });
+
+  if (customer) {
+    // Found by phone - update info and link userId if logged in
+    return prisma.customer.update({
+      where: { id: customer.id },
+      data: {
+        name: input.name,
+        email: input.email || null,
+        address: input.address,
+        // Link Clerk account if logged in and not already linked
+        ...(clerkUserId && !customer.userId ? { userId: clerkUserId } : {}),
+      },
+    });
+  }
+
+  // Priority 2: Match by userId (logged-in user with new phone)
+  if (clerkUserId) {
+    customer = await prisma.customer.findUnique({
+      where: { userId: clerkUserId },
+    });
+
+    if (customer) {
+      // User changed phone - update their record
+      return prisma.customer.update({
+        where: { id: customer.id },
+        data: {
+          name: input.name,
+          phone: input.phone,
+          email: input.email || null,
+          address: input.address,
+        },
+      });
+    }
+  }
+
+  // No match - create new customer
+  return prisma.customer.create({
+    data: {
+      userId: clerkUserId,
+      name: input.name,
+      phone: input.phone,
+      email: input.email || null,
+      address: input.address,
+    },
+  });
+}
+
+// Create Order
+export async function createOrder(
+  input: CreateOrderInput
+): Promise<ActionResult<{ orderId: string }>> {
+  try {
+    // 1. Validate input
+    const validated = createOrderSchema.parse(input);
+
+    // 2. Get Clerk userId (null if guest)
+    const { userId: clerkUserId } = await auth();
+
+    // 3. Fetch products with server-side prices (security)
+    const productIds = validated.items.map((item) => item.productId);
+    const products = await prisma.product.findMany({
+      where: {
+        id: { in: productIds },
+        isActive: true,
+      },
+      select: { id: true, price: true, name: true },
+    });
+
+    // 4. Validate all products exist and are active
+    if (products.length !== productIds.length) {
+      return {
+        success: false,
+        error: `Một số sản phẩm không còn khả dụng`,
+      };
+    }
+
+    // 5. Build order items with SERVER prices (prevent tampering)
+    const productMap = new Map(products.map((p) => [p.id, p.price]));
+    const orderItems = validated.items.map((item) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+      price: productMap.get(item.productId)!,
+    }));
+
+    // 6. Calculate total on server
+    const total = orderItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+
+    // 7. Find or create customer with deduplication
+    const customer = await findOrCreateCustomer(
+      {
+        name: validated.customerName,
+        phone: validated.customerPhone,
+        email: validated.customerEmail,
+        address: validated.customerAddress,
+      },
+      clerkUserId
+    );
+
+    // 8. Create order with nested writes (atomic)
+    const order = await prisma.order.create({
+      data: {
+        total,
+        status: "PENDING",
+        userId: clerkUserId,
+        customerId: customer.id,
+        // Snapshot fields for historical accuracy
+        shippingName: validated.customerName,
+        shippingPhone: validated.customerPhone,
+        shippingAddress: validated.customerAddress,
+        notes: validated.notes || null,
+        items: { create: orderItems },
+      },
+      select: { id: true },
+    });
+
+    revalidatePath("/admin/orders");
+
+    return { success: true, data: { orderId: order.id } };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0].message };
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Foreign key constraint (product deleted during checkout)
+      if (error.code === "P2003") {
+        return {
+          success: false,
+          error: "Một sản phẩm trong giỏ hàng không còn khả dụng",
+        };
+      }
+    }
+
+    console.error("Order creation failed:", error);
+    return { success: false, error: "Không thể tạo đơn hàng. Vui lòng thử lại." };
+  }
+}
+
+// Get Order by ID
+export async function getOrder(orderId: string) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      total: true,
+      status: true,
+      shippingName: true,
+      shippingPhone: true,
+      shippingAddress: true,
+      notes: true,
+      createdAt: true,
+      items: {
+        select: {
+          id: true,
+          quantity: true,
+          price: true,
+          product: {
+            select: {
+              id: true,
+              name: true,
+              images: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return order;
+}
+
+// Get Customer by Phone (for pre-filling checkout form)
+export async function getCustomerByAuth() {
+  const { userId } = await auth();
+  
+  if (!userId) return null;
+
+  const customer = await prisma.customer.findUnique({
+    where: { userId },
+    select: {
+      id: true,
+      name: true,
+      phone: true,
+      email: true,
+      address: true,
+    },
+  });
+
+  return customer;
 }
