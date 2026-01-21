@@ -21,6 +21,7 @@
     "docker:down": "docker-compose down"
   },
   "dependencies": {
+    "@clerk/localizations": "^3.35.0",
     "@clerk/nextjs": "^6.36.8",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^6.19.2",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { viVN } from "@clerk/localizations";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -34,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={viVN}>
       <html lang="vi" className={inter.variable}>
         <body className="min-h-screen bg-background font-sans antialiased">
           {children}
