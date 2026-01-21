@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ShoppingCart, Settings } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Settings, Store } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -46,15 +46,15 @@ export function AdminSidebar() {
             </Link>
           );
         })}
-      </nav>
-      <div className="absolute bottom-4 left-4 right-4">
         <Link
           href="/"
-          className="flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          target="_blank"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
+          <Store className="h-5 w-5" />
           View Store
         </Link>
-      </div>
+      </nav>
     </aside>
   );
 }

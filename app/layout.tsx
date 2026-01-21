@@ -3,8 +3,6 @@ import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
-import { Header } from "@/components/layout/header";
-import { CartDrawer } from "@/components/cart/cart-drawer";
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
@@ -39,9 +37,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="vi" className={inter.variable}>
         <body className="min-h-screen bg-background font-sans antialiased">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <CartDrawer />
+          {children}
           <Toaster position="top-center" richColors />
         </body>
       </html>

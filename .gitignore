@@ -41,8 +41,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-.agent
-.shared
+
+
 
 # clerk configuration (can include secrets)
 /.clerk/
