@@ -20,8 +20,8 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
   return (
     <div className="flex min-h-screen flex-col">
       <AdminHeader
-        title="Edit Product"
-        description={`Editing: ${product.name}`}
+        title="Chỉnh sửa sản phẩm"
+        description={`Đang chỉnh sửa: ${product.name}`}
       />
 
       <main className="flex-1 p-6">

@@ -42,7 +42,7 @@ export function ImageUpload({
           >
             <Image
               src={url}
-              alt="Product image"
+              alt="Hình ảnh sản phẩm"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 50vw, 25vw"
@@ -101,7 +101,7 @@ export function ImageUpload({
                   <>
                     <ImagePlus className="h-8 w-8 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground font-medium">
-                      Add Image
+                      Thêm ảnh
                     </span>
                   </>
                 )}
@@ -113,7 +113,7 @@ export function ImageUpload({
 
       {/* Helper Text */}
       <p className="text-xs text-muted-foreground">
-        {value.length}/{maxImages} images. Click to upload or drag and drop.
+        {value.length}/{maxImages} hình ảnh. Nhấn để tải lên hoặc kéo thả.
       </p>
     </div>
   );

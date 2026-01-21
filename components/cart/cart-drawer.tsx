@@ -28,19 +28,19 @@ export function CartDrawer() {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <ShoppingBag className="h-5 w-5" />
-            Shopping Cart ({items.length})
+            Giỏ hàng ({items.length})
           </SheetTitle>
         </SheetHeader>
 
         {items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center space-y-4">
             <ShoppingBag className="h-16 w-16 text-muted-foreground" />
-            <p className="text-lg font-medium">Your cart is empty</p>
+            <p className="text-lg font-medium">Giỏ hàng trống</p>
             <p className="text-sm text-muted-foreground text-center">
-              Looks like you have not added anything to your cart yet.
+              Có vẻ như bạn chưa thêm gì vào giỏ hàng.
             </p>
             <Button onClick={closeCart} asChild>
-              <Link href="/">Start Shopping</Link>
+              <Link href="/">Bắt đầu mua sắm</Link>
             </Button>
           </div>
         ) : (
@@ -106,19 +106,19 @@ export function CartDrawer() {
             <div className="space-y-4 pt-4">
               <Separator />
               <div className="flex items-center justify-between text-lg font-semibold">
-                <span>Total</span>
+                <span>Tổng cộng</span>
                 <span className="text-primary">{formatPrice(total)}</span>
               </div>
               <SheetFooter className="flex-col gap-2 sm:flex-col">
                 <Button className="w-full" size="lg" asChild onClick={closeCart}>
-                  <Link href="/checkout">Checkout</Link>
+                  <Link href="/checkout">Thanh toán</Link>
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full"
                   onClick={clearCart}
                 >
-                  Clear Cart
+                  Xóa giỏ hàng
                 </Button>
               </SheetFooter>
             </div>

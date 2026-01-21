@@ -23,22 +23,22 @@ import { toast } from "sonner";
 import type { Product } from "@/types";
 
 const CATEGORIES = [
-  "Living Room",
-  "Bedroom",
-  "Kitchen",
-  "Bathroom",
-  "Office",
-  "Outdoor",
-  "Decor",
-  "Lighting",
+  "Phòng khách",
+  "Phòng ngủ",
+  "Nhà bếp",
+  "Phòng tắm",
+  "Văn phòng",
+  "Ngoài trời",
+  "Trang trí",
+  "Đèn",
 ];
 
 const productFormSchema = z.object({
-  name: z.string().min(1, "Name is required").max(200),
+  name: z.string().min(1, "Tên là bắt buộc").max(200),
   description: z.string().max(2000).optional(),
-  price: z.number().int().positive("Price must be positive"),
-  category: z.string().min(1, "Category is required"),
-  images: z.array(z.string().url()).min(1, "At least one image is required"),
+  price: z.number().int().positive("Giá phải là số dương"),
+  category: z.string().min(1, "Danh mục là bắt buộc"),
+  images: z.array(z.string().url()).min(1, "Cần ít nhất một hình ảnh"),
   isActive: z.boolean(),
 });
 
@@ -71,7 +71,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
         : await createProduct(data);
 
       if (result.success) {
-        toast.success(initialData ? "Product updated" : "Product created");
+        toast.success(initialData ? "Sản phẩm đã được cập nhật" : "Sản phẩm đã được tạo");
         router.push("/admin/products");
         router.refresh();
       } else {
@@ -86,7 +86,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
       {/* Images */}
       <div className="space-y-2">
-        <Label>Product Images</Label>
+        <Label>Hình ảnh sản phẩm</Label>
         <ImageUpload
           value={images}
           onChange={(urls) => form.setValue("images", urls)}
@@ -102,10 +102,10 @@ export function ProductForm({ initialData }: ProductFormProps) {
 
       {/* Name */}
       <div className="space-y-2">
-        <Label htmlFor="name">Product Name</Label>
+        <Label htmlFor="name">Tên sản phẩm</Label>
         <Input
           id="name"
-          placeholder="e.g., Modern Ceramic Vase"
+          placeholder="ví dụ: Bình gốm hiện đại"
           disabled={isPending}
           {...form.register("name")}
         />
@@ -118,10 +118,10 @@ export function ProductForm({ initialData }: ProductFormProps) {
 
       {/* Description */}
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">Mô tả</Label>
         <Textarea
           id="description"
-          placeholder="Describe your product..."
+          placeholder="Mô tả sản phẩm của bạn..."
           rows={4}
           disabled={isPending}
           {...form.register("description")}
@@ -137,7 +137,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
       <div className="grid gap-6 sm:grid-cols-2">
         {/* Price */}
         <div className="space-y-2">
-          <Label htmlFor="price">Price (VND)</Label>
+          <Label htmlFor="price">Giá (VND)</Label>
           <Input
             id="price"
             type="number"
@@ -154,14 +154,14 @@ export function ProductForm({ initialData }: ProductFormProps) {
 
         {/* Category */}
         <div className="space-y-2">
-          <Label>Category</Label>
+          <Label>Danh mục</Label>
           <Select
             value={useWatch({ control: form.control, name: "category" })}
             onValueChange={(value) => form.setValue("category", value)}
             disabled={isPending}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select a category" />
+              <SelectValue placeholder="Chọn danh mục" />
             </SelectTrigger>
             <SelectContent>
               {CATEGORIES.map((category) => (
@@ -189,7 +189,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
           {...form.register("isActive")}
         />
         <Label htmlFor="isActive" className="font-normal">
-          Product is active and visible on store
+          Sản phẩm đang hoạt động và hiển thị trên cửa hàng
         </Label>
       </div>
 
@@ -197,7 +197,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
       <div className="flex items-center gap-4 pt-4">
         <Button type="submit" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {initialData ? "Update Product" : "Create Product"}
+          {initialData ? "Cập nhật sản phẩm" : "Tạo sản phẩm"}
         </Button>
         <Button
           type="button"
@@ -205,7 +205,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
           onClick={() => router.back()}
           disabled={isPending}
         >
-          Cancel
+          Hủy
         </Button>
       </div>
     </form>

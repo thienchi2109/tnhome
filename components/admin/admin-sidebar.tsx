@@ -6,10 +6,10 @@ import { LayoutDashboard, Package, ShoppingCart, Settings, Store } from "lucide-
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/products", label: "Products", icon: Package },
-  { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/admin", label: "Tổng Quan", icon: LayoutDashboard },
+  { href: "/admin/products", label: "Sản Phẩm", icon: Package },
+  { href: "/admin/orders", label: "Đơn Hàng", icon: ShoppingCart },
+  { href: "/admin/settings", label: "Cài Đặt", icon: Settings },
 ];
 
 export function AdminSidebar() {
@@ -52,7 +52,7 @@ export function AdminSidebar() {
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <Store className="h-5 w-5" />
-          View Store
+          Xem Cửa Hàng
         </Link>
       </nav>
     </aside>

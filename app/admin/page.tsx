@@ -59,28 +59,28 @@ export default async function AdminDashboardPage() {
 
   const statCards = [
     {
-      title: "Total Products",
+      title: "Tổng sản phẩm",
       value: stats.totalProducts,
       icon: Package,
       trend: null,
       color: "blue",
     },
     {
-      title: "Active Products",
+      title: "Sản phẩm đang bán",
       value: stats.activeProducts,
       icon: PackageCheck,
       trend: null,
       color: "green",
     },
     {
-      title: "Total Orders",
+      title: "Tổng đơn hàng",
       value: stats.totalOrders,
       icon: ShoppingCart,
       trend: null,
       color: "purple",
     },
     {
-      title: "Revenue",
+      title: "Doanh thu",
       value: formatPrice(stats.revenue),
       icon: TrendingUp,
       trend: null,
@@ -91,8 +91,8 @@ export default async function AdminDashboardPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <AdminHeader
-        title="Dashboard"
-        description="Welcome back! Here's what's happening with your store."
+        title="Tổng Quan"
+        description="Chào mừng trở lại! Đây là tình hình hoạt động của cửa hàng bạn."
       />
 
       <main className="flex-1 p-6 space-y-8">
@@ -107,40 +107,37 @@ export default async function AdminDashboardPage() {
               >
                 {/* Subtle gradient background */}
                 <div
-                  className={`absolute inset-0 opacity-0 transition-opacity group-hover:opacity-5 ${
-                    card.color === "blue"
+                  className={`absolute inset-0 opacity-0 transition-opacity group-hover:opacity-5 ${card.color === "blue"
                       ? "bg-gradient-to-br from-blue-500 to-blue-600"
                       : card.color === "green"
                         ? "bg-gradient-to-br from-green-500 to-green-600"
                         : card.color === "purple"
                           ? "bg-gradient-to-br from-purple-500 to-purple-600"
                           : "bg-gradient-to-br from-orange-500 to-orange-600"
-                  }`}
+                    }`}
                 />
 
                 <div className="relative space-y-2">
                   {/* Icon */}
                   <div
-                    className={`inline-flex rounded-xl p-2.5 ${
-                      card.color === "blue"
+                    className={`inline-flex rounded-xl p-2.5 ${card.color === "blue"
                         ? "bg-blue-50"
                         : card.color === "green"
                           ? "bg-green-50"
                           : card.color === "purple"
                             ? "bg-purple-50"
                             : "bg-orange-50"
-                    }`}
+                      }`}
                   >
                     <Icon
-                      className={`h-5 w-5 ${
-                        card.color === "blue"
+                      className={`h-5 w-5 ${card.color === "blue"
                           ? "text-blue-600"
                           : card.color === "green"
                             ? "text-green-600"
                             : card.color === "purple"
                               ? "text-purple-600"
                               : "text-orange-600"
-                      }`}
+                        }`}
                     />
                   </div>
 
@@ -164,7 +161,7 @@ export default async function AdminDashboardPage() {
         {/* Quick Actions */}
         <div className="rounded-2xl border bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-foreground">
-            Quick Actions
+            Thao tác nhanh
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Link
@@ -175,9 +172,9 @@ export default async function AdminDashboardPage() {
                 <Plus className="h-6 w-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-foreground">Add Product</h3>
+                <h3 className="font-semibold text-foreground">Thêm sản phẩm</h3>
                 <p className="text-sm text-muted-foreground">
-                  Create a new product listing
+                  Tạo một danh sách sản phẩm mới
                 </p>
               </div>
               <ArrowUpRight className="h-5 w-5 text-blue-600 opacity-0 transition-opacity group-hover:opacity-100" />
@@ -192,9 +189,9 @@ export default async function AdminDashboardPage() {
                 <Store className="h-6 w-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-foreground">View Store</h3>
+                <h3 className="font-semibold text-foreground">Xem cửa hàng</h3>
                 <p className="text-sm text-muted-foreground">
-                  See your live storefront
+                  Xem giao diện cửa hàng trực tuyến
                 </p>
               </div>
               <ArrowUpRight className="h-5 w-5 text-green-600 opacity-0 transition-opacity group-hover:opacity-100" />
@@ -206,13 +203,13 @@ export default async function AdminDashboardPage() {
         <div className="rounded-2xl border bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">
-              Recent Orders
+              Đơn hàng gần đây
             </h2>
             <Link
               href="/admin/orders"
               className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
             >
-              View all
+              Xem tất cả
             </Link>
           </div>
 
@@ -225,7 +222,7 @@ export default async function AdminDashboardPage() {
                 >
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-foreground">
-                      Order #{order.id.slice(-8).toUpperCase()}
+                      Đơn hàng #{order.id.slice(-8).toUpperCase()}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(order.createdAt).toLocaleDateString("vi-VN", {
@@ -239,13 +236,12 @@ export default async function AdminDashboardPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        order.status === "COMPLETED"
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${order.status === "COMPLETED"
                           ? "bg-green-100 text-green-800"
                           : order.status === "PENDING"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-gray-100 text-gray-800"
-                      }`}
+                        }`}
                     >
                       {order.status}
                     </span>
@@ -262,10 +258,10 @@ export default async function AdminDashboardPage() {
                 <ShoppingCart className="h-8 w-8 text-muted-foreground" />
               </div>
               <h3 className="mb-1 font-semibold text-foreground">
-                No orders yet
+                Chưa có đơn hàng nào
               </h3>
               <p className="text-sm text-muted-foreground">
-                Orders will appear here once customers start purchasing.
+                Đơn hàng sẽ xuất hiện ở đây sau khi khách hàng bắt đầu mua sắm.
               </p>
             </div>
           )}

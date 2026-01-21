@@ -38,7 +38,7 @@ export function ProductActions({ productId, isActive }: ProductActionsProps) {
     startTransition(async () => {
       const result = await toggleProductStatus(productId, !isActive);
       if (result.success) {
-        toast.success(isActive ? "Product hidden" : "Product activated");
+        toast.success(isActive ? "Đã ẩn sản phẩm" : "Đã kích hoạt sản phẩm");
       } else {
         toast.error(result.error);
       }
@@ -49,7 +49,7 @@ export function ProductActions({ productId, isActive }: ProductActionsProps) {
     startTransition(async () => {
       const result = await deleteProduct(productId);
       if (result.success) {
-        toast.success("Product deleted");
+        toast.success("Đã xóa sản phẩm");
         setShowDeleteDialog(false);
       } else {
         toast.error(result.error);
@@ -63,7 +63,7 @@ export function ProductActions({ productId, isActive }: ProductActionsProps) {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">Actions</span>
+            <span className="sr-only">Thao tác</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
@@ -71,18 +71,18 @@ export function ProductActions({ productId, isActive }: ProductActionsProps) {
             onClick={() => router.push(`/admin/products/${productId}/edit`)}
           >
             <Pencil className="mr-2 h-4 w-4" />
-            Edit
+            Chỉnh sửa
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleToggleStatus} disabled={isPending}>
             {isActive ? (
               <>
                 <EyeOff className="mr-2 h-4 w-4" />
-                Hide
+                Ẩn
               </>
             ) : (
               <>
                 <Eye className="mr-2 h-4 w-4" />
-                Show
+                Hiện
               </>
             )}
           </DropdownMenuItem>
@@ -92,7 +92,7 @@ export function ProductActions({ productId, isActive }: ProductActionsProps) {
             className="text-red-600 focus:text-red-600"
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            Delete
+            Xóa
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -100,20 +100,19 @@ export function ProductActions({ productId, isActive }: ProductActionsProps) {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Product</AlertDialogTitle>
+            <AlertDialogTitle>Xóa sản phẩm</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this product? This action cannot
-              be undone.
+              Bạn có chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isPending}>Hủy</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isPending}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isPending ? "Deleting..." : "Delete"}
+              {isPending ? "Đang xóa..." : "Xóa"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

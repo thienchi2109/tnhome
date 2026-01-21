@@ -7,8 +7,8 @@ export default function NewProductPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <AdminHeader
-        title="Add Product"
-        description="Create a new product listing"
+        title="Thêm sản phẩm"
+        description="Tạo danh sách sản phẩm mới"
       />
 
       <main className="flex-1 p-6">

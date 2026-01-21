@@ -42,7 +42,7 @@ export function Header() {
                     alt="TN Home"
                     fill
                     className="object-cover"
-                    sizes="48px"
+                    sizes="40px"
                     priority
                   />
                 </div>
@@ -51,7 +51,7 @@ export function Header() {
                     TN Home
                   </span>
                   <span className="text-xs md:text-sm font-medium text-muted-foreground leading-none tracking-widest uppercase">
-                    Furniture
+                    Gia dụng và Nội thất
                   </span>
                 </div>
               </Link>
@@ -65,7 +65,7 @@ export function Header() {
                 </div>
                 <input
                   type="text"
-                  placeholder="Search furniture, decor, and more..."
+                  placeholder="Tìm kiếm nội thất, trang trí và hơn thế nữa..."
                   className="w-full h-11 pl-12 pr-12 bg-muted/10 border border-input focus:border-primary rounded-full outline-none text-sm transition-all focus:bg-background focus:ring-4 focus:ring-primary/10"
                 />
                 <Button
@@ -88,11 +88,11 @@ export function Header() {
                 <SignedOut>
                   <Link href="/sign-in" className="flex items-center gap-2 hover:text-primary transition-colors text-sm font-medium">
                     <User className="h-5 w-5" />
-                    <span>Sign In</span>
+                    <span>Đăng nhập</span>
                   </Link>
                   <span className="text-muted-foreground">/</span>
                   <Link href="/sign-up" className="hover:text-primary transition-colors text-sm font-medium">
-                    Sign Up
+                    Đăng ký
                   </Link>
                 </SignedOut>
 
@@ -123,7 +123,7 @@ export function Header() {
                   </div>
                   <div className="hidden md:flex flex-col items-start gap-0.5 text-xs">
                     <span className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">
-                      Cart
+                      Giỏ hàng
                     </span>
                   </div>
                 </Button>
@@ -139,21 +139,21 @@ export function Header() {
             {/* All Categories Dropdown Trigger Design */}
             <Button className="shrink-0 gap-2 rounded-full hidden md:flex" size="sm">
               <Menu className="h-4 w-4" />
-              <span>All Categories</span>
+              <span>Danh mục</span>
             </Button>
 
             <div className="h-6 w-px bg-border mx-2 hidden md:block" />
 
             <nav className="flex items-center gap-1 md:gap-2 w-full">
               {[
-                { name: "Furniture", href: "/products?category=furniture" },
-                { name: "Living Room", href: "/products?category=living-room" },
-                { name: "Bedroom", href: "/products?category=bedroom" },
-                { name: "Kitchen & Dining", href: "/products?category=kitchen" },
-                { name: "Decor", href: "/products?category=decor" },
-                { name: "Lighting", href: "/products?category=lighting" },
-                { name: "Outdoor", href: "/products?category=outdoor" },
-                { name: "New Arrivals", href: "/products?sort=newest", highlight: true },
+                { name: "Nội thất", href: "/products?category=furniture" },
+                { name: "Phòng khách", href: "/products?category=living-room" },
+                { name: "Phòng ngủ", href: "/products?category=bedroom" },
+                { name: "Bếp & Ăn uống", href: "/products?category=kitchen" },
+                { name: "Trang trí", href: "/products?category=decor" },
+                { name: "Đèn & Ánh sáng", href: "/products?category=lighting" },
+                { name: "Ngoài trời", href: "/products?category=outdoor" },
+                { name: "Sản phẩm mới", href: "/products?sort=newest", highlight: true },
               ].map((category) => (
                 <Link
                   key={category.name}
@@ -173,7 +173,7 @@ export function Header() {
 
             <div className="ml-auto shrink-0 hidden lg:block">
               <Link href="/products" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
-                View All Products <ChevronDown className="h-4 w-4 -rotate-90" />
+                Xem tất cả <ChevronDown className="h-4 w-4 -rotate-90" />
               </Link>
             </div>
           </div>

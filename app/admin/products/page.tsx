@@ -16,8 +16,8 @@ export default async function ProductsPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <AdminHeader
-        title="Products"
-        description="Manage your product catalog"
+        title="Sản phẩm"
+        description="Quản lý danh mục sản phẩm của bạn"
       />
 
       <main className="flex-1 p-6 space-y-6">
@@ -25,13 +25,13 @@ export default async function ProductsPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">
-              {products.length} product{products.length !== 1 ? "s" : ""} total
+              Tổng cộng {products.length} sản phẩm
             </p>
           </div>
           <Button asChild className="gap-2">
             <Link href="/admin/products/new">
               <Plus className="h-4 w-4" />
-              Add Product
+              Thêm sản phẩm
             </Link>
           </Button>
         </div>
@@ -44,19 +44,19 @@ export default async function ProductsPage() {
                 <thead>
                   <tr className="border-b bg-muted/30">
                     <th className="text-left p-4 font-medium text-muted-foreground text-sm">
-                      Product
+                      Sản phẩm
                     </th>
                     <th className="text-left p-4 font-medium text-muted-foreground text-sm">
-                      Category
+                      Danh mục
                     </th>
                     <th className="text-left p-4 font-medium text-muted-foreground text-sm">
-                      Price
+                      Giá
                     </th>
                     <th className="text-left p-4 font-medium text-muted-foreground text-sm">
-                      Status
+                      Trạng thái
                     </th>
                     <th className="text-right p-4 font-medium text-muted-foreground text-sm">
-                      Actions
+                      Thao tác
                     </th>
                   </tr>
                 </thead>
@@ -79,7 +79,7 @@ export default async function ProductsPage() {
                               />
                             ) : (
                               <div className="h-full w-full flex items-center justify-center text-muted-foreground text-xs">
-                                No img
+                                Không ảnh
                               </div>
                             )}
                           </div>
@@ -112,7 +112,7 @@ export default async function ProductsPage() {
                               : "text-muted-foreground"
                           }
                         >
-                          {product.isActive ? "Active" : "Inactive"}
+                          {product.isActive ? "Đang bán" : "Ngừng bán"}
                         </Badge>
                       </td>
                       <td className="p-4 text-right">
@@ -134,15 +134,15 @@ export default async function ProductsPage() {
                 <Plus className="h-8 w-8 text-muted-foreground" />
               </div>
               <h3 className="mb-1 font-semibold text-foreground">
-                No products yet
+                Chưa có sản phẩm nào
               </h3>
               <p className="mb-4 text-sm text-muted-foreground">
-                Get started by creating your first product.
+                Bắt đầu bằng việc tạo sản phẩm đầu tiên của bạn.
               </p>
               <Button asChild>
                 <Link href="/admin/products/new">
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Product
+                  Thêm sản phẩm
                 </Link>
               </Button>
             </div>

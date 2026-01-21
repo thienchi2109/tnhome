@@ -27,7 +27,7 @@ export function ProductCard({ id, name, price, image, category }: ProductCardPro
           />
         ) : (
           <div className="absolute inset-0 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center">
-            <span className="text-muted-foreground text-sm">No image</span>
+            <span className="text-muted-foreground text-sm">Không có hình ảnh</span>
           </div>
         )}
 
@@ -44,7 +44,7 @@ export function ProductCard({ id, name, price, image, category }: ProductCardPro
               // Add to cart logic
             }}
           >
-            Quick Add
+            Thêm nhanh
           </Button>
         </div>
       </div>

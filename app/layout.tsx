@@ -10,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "TN Home - Modern E-Commerce",
-  description: "Shopping at the speed of Gen Z. Modern, fast, and beautiful.",
-  keywords: ["e-commerce", "shopping", "vietnam", "household"],
+  title: "TN Home - Nội Thất Hiện Đại",
+  description: "Mua sắm theo phong cách Gen Z. Hiện đại, nhanh chóng và đẹp mắt.",
+  keywords: ["thương mại điện tử", "mua sắm", "việt nam", "đồ gia dụng"],
   icons: {
     icon: [
 
