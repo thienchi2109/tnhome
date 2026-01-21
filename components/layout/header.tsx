@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
-import { ShoppingBag, Search, Menu, User, Settings, List, ChevronDown } from "lucide-react";
+import { ShoppingBag, Search, Menu, User, LayoutDashboard, List, ChevronDown } from "lucide-react";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -97,8 +97,8 @@ export function Header() {
                 </SignedOut>
 
                 <SignedIn>
-                  <Link href="/admin" className="flex items-center gap-2 hover:text-primary transition-colors text-sm font-medium">
-                    <Settings className="h-5 w-5" />
+                  <Link href="/admin" className="flex items-center gap-2 hover:text-primary transition-colors text-sm font-medium" title="Quản trị viên">
+                    <LayoutDashboard className="h-5 w-5" />
                   </Link>
                   <div className="pl-2">
                     <UserButton afterSignOutUrl="/" />
