@@ -2,15 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { MoreHorizontal, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
+import { Pencil, Trash2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +14,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { deleteProduct, toggleProductStatus } from "@/lib/actions";
 import { toast } from "sonner";
 
@@ -59,43 +57,57 @@ export function ProductActions({ productId, isActive }: ProductActionsProps) {
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">Thao tác</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-40">
-          <DropdownMenuItem
-            onClick={() => router.push(`/admin/products/${productId}/edit`)}
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            Chỉnh sửa
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleToggleStatus} disabled={isPending}>
-            {isActive ? (
-              <>
-                <EyeOff className="mr-2 h-4 w-4" />
-                Ẩn
-              </>
-            ) : (
-              <>
-                <Eye className="mr-2 h-4 w-4" />
-                Hiện
-              </>
-            )}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => setShowDeleteDialog(true)}
-            className="text-red-600 focus:text-red-600"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Xóa
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center justify-end gap-1">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => router.push(`/admin/products/${productId}/edit`)}
+            >
+              <Pencil className="h-4 w-4" />
+              <span className="sr-only">Chỉnh sửa</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Chỉnh sửa</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleToggleStatus}
+              disabled={isPending}
+            >
+              {isActive ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+              <span className="sr-only">{isActive ? "Ẩn" : "Hiện"}</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{isActive ? "Ẩn" : "Hiện"}</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Xóa</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Xóa</TooltipContent>
+        </Tooltip>
+      </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>

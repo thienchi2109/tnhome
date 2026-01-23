@@ -166,6 +166,7 @@ export async function getProducts() {
     select: {
       id: true,
       name: true,
+      description: true,
       price: true,
       category: true,
       images: true,

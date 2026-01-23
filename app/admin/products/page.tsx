@@ -53,6 +53,9 @@ export default async function ProductsPage() {
                       Giá
                     </th>
                     <th className="text-left p-4 font-medium text-muted-foreground text-sm">
+                      Mô tả
+                    </th>
+                    <th className="text-left p-4 font-medium text-muted-foreground text-sm">
                       Trạng thái
                     </th>
                     <th className="text-right p-4 font-medium text-muted-foreground text-sm">
@@ -102,6 +105,11 @@ export default async function ProductsPage() {
                         <span className="font-medium">
                           {formatPrice(product.price)}
                         </span>
+                      </td>
+                      <td className="p-4">
+                        <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+                          {product.description || "—"}
+                        </p>
                       </td>
                       <td className="p-4">
                         <Badge
