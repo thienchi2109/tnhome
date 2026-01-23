@@ -82,7 +82,8 @@ export interface PaginatedProducts {
 // Pagination constants
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
-const ALLOWED_PAGE_SIZES = [10, 20, 50, 100] as const;
+const ALLOWED_PAGE_SIZES = [10, 12, 20, 24, 50, 100] as const;
+export const STORE_PAGE_SIZE = 24; // For public storefront grid (4 rows on desktop)
 
 // Helper to validate and normalize pagination params
 export function normalizePaginationParams(
@@ -292,6 +293,58 @@ export async function getActiveProducts(category?: string) {
   });
 
   return products;
+}
+
+// Get Active Products for Storefront (with pagination)
+export async function getActiveProductsPaginated(
+  params?: PaginationParams,
+  category?: string
+): Promise<PaginatedProducts> {
+  const { page, pageSize } = params ?? {
+    page: DEFAULT_PAGE,
+    pageSize: STORE_PAGE_SIZE,
+  };
+
+  const skip = (page - 1) * pageSize;
+
+  const whereClause = {
+    isActive: true,
+    ...(category && { category }),
+  };
+
+  // Execute count and findMany in parallel (async-parallel best practice)
+  const [totalItems, products] = await Promise.all([
+    prisma.product.count({ where: whereClause }),
+    prisma.product.findMany({
+      where: whereClause,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: pageSize,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        category: true,
+        images: true,
+        isActive: true,
+        createdAt: true,
+      },
+    }),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const validPage = Math.min(page, totalPages);
+
+  return {
+    products,
+    pagination: {
+      page: validPage,
+      pageSize,
+      totalItems,
+      totalPages,
+    },
+  };
 }
 
 // Get Categories

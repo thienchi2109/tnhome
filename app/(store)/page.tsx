@@ -4,10 +4,15 @@ import { ProductGrid } from "@/components/product/product-grid";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { getActiveProducts } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Fetch latest 8 products for homepage preview
+  const allProducts = await getActiveProducts();
+  const products = allProducts.slice(0, 8);
+
   return (
     <main className="flex flex-col pb-20">
       <HeroSection />
@@ -26,7 +31,7 @@ export default function HomePage() {
               </Button>
             }
           />
-          <ProductGrid />
+          <ProductGrid products={products} />
         </div>
       </section>
 
