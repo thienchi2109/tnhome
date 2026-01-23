@@ -1,9 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { formatPrice, cn } from "@/lib/utils";
-import Link from "next/link";
+import { cn, formatPrice } from "@/lib/utils";
 import Image from "next/image";
+import Link from "next/link";
 
 interface ProductCardProps {
   id: string;
@@ -20,8 +19,8 @@ export function ProductCard({ id, name, price, image, images, category }: Produc
   const hasMultipleImages = imageList.length > 1;
 
   return (
-    <Link href={`/product/${id}`} className="group flex flex-col gap-3">
-      <div className="aspect-square relative overflow-hidden rounded-xl bg-muted/50">
+    <Link href={`/product/${id}`} className="group flex flex-col gap-4">
+      <div className="aspect-[3/4] relative overflow-hidden bg-muted/30">
         {imageList.length > 0 ? (
           <>
             {/* Primary Image */}
@@ -30,7 +29,7 @@ export function ProductCard({ id, name, price, image, images, category }: Produc
               alt={name}
               fill
               className={cn(
-                "object-cover transition-transform duration-300 group-hover:scale-105",
+                "object-cover transition-transform duration-500 ease-out group-hover:scale-105",
                 "motion-reduce:transition-none"
               )}
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
@@ -46,54 +45,31 @@ export function ProductCard({ id, name, price, image, images, category }: Produc
                 aria-hidden="true"
                 className={cn(
                   "object-cover absolute inset-0 opacity-0 group-hover:opacity-100",
-                  "transition-opacity duration-300 motion-reduce:transition-none"
+                  "transition-opacity duration-500 ease-out motion-reduce:transition-none"
                 )}
                 sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               />
             )}
-
-            {/* Image Count Badge */}
-            {hasMultipleImages && (
-              <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-black/60 text-white text-xs font-medium backdrop-blur-sm pointer-events-none">
-                1/{imageList.length}
-              </div>
-            )}
           </>
         ) : (
-          <div className="absolute inset-0 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center">
-            <span className="text-muted-foreground text-sm">Không có hình ảnh</span>
+          <div className="absolute inset-0 bg-secondary flex items-center justify-center">
+            <span className="text-muted-foreground text-sm">No image</span>
           </div>
         )}
-
-        {/* Interaction Overlay */}
-        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 motion-reduce:transition-none" />
-
-        {/* Quick Add Button - Desktop */}
-        <div className="absolute bottom-4 left-4 right-4 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 motion-reduce:transition-none hidden md:block">
-          <Button
-            className="w-full rounded-full shadow-lg"
-            size="sm"
-            onClick={(e) => {
-              e.preventDefault();
-              // Add to cart logic
-            }}
-          >
-            Thêm nhanh
-          </Button>
-        </div>
       </div>
-      <div className="flex flex-col gap-1">
-        <div className="flex justify-between items-start">
-          <h3 className="text-base font-medium leading-tight group-hover:text-primary transition-colors">
-            {name}
-          </h3>
-          <span className="text-sm font-semibold">{formatPrice(price)}</span>
+
+      <div className="space-y-1">
+        <h3 className="heading-product text-foreground group-hover:underline decoration-1 underline-offset-4 transition-all">
+          {name}
+        </h3>
+        <div className="flex items-center justify-between">
+          {category && (
+            <p className="text-caption">
+              {category}
+            </p>
+          )}
+          <span className="text-sm font-medium text-foreground">{formatPrice(price)}</span>
         </div>
-        {category && (
-          <p className="text-sm text-muted-foreground line-clamp-1">
-            {category}
-          </p>
-        )}
       </div>
     </Link>
   );

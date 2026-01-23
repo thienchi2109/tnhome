@@ -15,7 +15,7 @@
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
+  --color-sidebar-: var(--sidebar);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -45,13 +45,13 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  --animate-fade-in-up: fade-in-up 0.8s ease-out forwards;
-  --animate-scale-in: scale-in 0.5s ease-out forwards;
+  --animate-fade-in-up: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-scale-in: scale-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 
   @keyframes fade-in-up {
     0% {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(30px);
     }
 
     100% {
@@ -63,7 +63,7 @@
   @keyframes scale-in {
     0% {
       opacity: 0;
-      transform: scale(0.95);
+      transform: scale(0.96);
     }
 
     100% {
@@ -80,26 +80,36 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --radius: 0.5rem;
+  /* Warm Nordic Palette - Light Mode */
+  --background: oklch(0.98 0.005 50); /* Soft warm white */
+  --foreground: oklch(0.2 0.01 50); /* Deep warm charcoal */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.2 0.01 50);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  /* Apple-inspired Electric Blue primary */
-  --primary: oklch(0.586 0.237 262.4);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.2 0.01 50);
+
+  /* Primary: Deep Earthy Slate/Charcoal */
+  --primary: oklch(0.25 0.02 260); 
+  --primary-foreground: oklch(0.98 0.005 50);
+  
+  /* Secondary: Soft Greige */
+  --secondary: oklch(0.94 0.01 80);
+  --secondary-foreground: oklch(0.2 0.01 50);
+  
+  /* Muted: Subtle wash */
+  --muted: oklch(0.96 0.01 50);
+  --muted-foreground: oklch(0.55 0.02 50);
+  
+  /* Accent: Terracotta/Clay for highlights */
+  --accent: oklch(0.65 0.15 45);
+  --accent-foreground: oklch(0.98 0.005 50);
+  
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.586 0.237 262.4);
+  --border: oklch(0.92 0.01 50);
+  --input: oklch(0.92 0.01 50);
+  --ring: oklch(0.25 0.02 260);
+  
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -107,33 +117,40 @@
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.586 0.237 262.4);
+  --sidebar-primary: oklch(0.25 0.02 260);
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.586 0.237 262.4);
+  --sidebar-ring: oklch(0.25 0.02 260);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.586 0.237 262.4);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Warm Nordic Palette - Dark Mode */
+  --background: oklch(0.12 0.01 50);
+  --foreground: oklch(0.95 0.01 50);
+  --card: oklch(0.15 0.01 50);
+  --card-foreground: oklch(0.95 0.01 50);
+  --popover: oklch(0.15 0.01 50);
+  --popover-foreground: oklch(0.95 0.01 50);
+  
+  --primary: oklch(0.95 0.01 50); /* Reverse for contrast - Off white text/elements */
+  --primary-foreground: oklch(0.12 0.01 50);
+
+  --secondary: oklch(0.20 0.01 50);
+  --secondary-foreground: oklch(0.95 0.01 50);
+
+  --muted: oklch(0.18 0.01 50);
+  --muted-foreground: oklch(0.70 0.01 50);
+
+  --accent: oklch(0.65 0.15 45);
+  --accent-foreground: oklch(0.98 0.005 50);
+
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.586 0.237 262.4);
+  --border: oklch(0.25 0.01 50);
+  --input: oklch(0.25 0.01 50);
+  --ring: oklch(0.95 0.01 50);
+  
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -155,57 +172,59 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
 }
 
-/* Apple-inspired Typography Classes - using standard CSS */
+/* Editorial Typography System */
 .heading-hero {
-  font-size: 2.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  font-size: 2.75rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
 }
 
 .heading-section {
-  font-size: 1.75rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 1.875rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
 }
 
 .heading-product {
-  font-size: 1.0625rem;
+  font-size: 1rem;
   font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 .text-body {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.6;
 }
 
 .text-caption {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
+  letter-spacing: -0.01em;
 }
 
 /* Responsive typography */
 @media (min-width: 768px) {
   .heading-hero {
-    font-size: 3rem;
+    font-size: 3.75rem;
   }
 
   .heading-section {
-    font-size: 2rem;
+    font-size: 2.25rem;
   }
 }
 
 @media (min-width: 1024px) {
   .heading-hero {
-    font-size: 3.5rem;
+    font-size: 4.5rem;
   }
 
   .heading-section {
-    font-size: 2.5rem;
+    font-size: 2.75rem;
   }
 }
 
