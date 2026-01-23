@@ -54,6 +54,64 @@ type ActionResult<T = unknown> =
   | { success: true; data: T }
   | { success: false; error: string };
 
+// Pagination types
+export interface PaginationParams {
+  page: number;
+  pageSize: number;
+}
+
+export interface PaginatedProducts {
+  products: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    price: number;
+    category: string;
+    images: string[];
+    isActive: boolean;
+    createdAt: Date;
+  }>;
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+}
+
+// Pagination constants
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 20;
+const ALLOWED_PAGE_SIZES = [10, 20, 50, 100] as const;
+
+// Helper to validate and normalize pagination params
+export function normalizePaginationParams(
+  page?: string | number | null,
+  pageSize?: string | number | null
+): PaginationParams {
+  // Parse and validate page
+  let parsedPage =
+    typeof page === "string" ? parseInt(page, 10) : (page ?? DEFAULT_PAGE);
+  if (isNaN(parsedPage) || parsedPage < 1) {
+    parsedPage = DEFAULT_PAGE;
+  }
+
+  // Parse and validate pageSize
+  let parsedPageSize =
+    typeof pageSize === "string"
+      ? parseInt(pageSize, 10)
+      : (pageSize ?? DEFAULT_PAGE_SIZE);
+  if (
+    !ALLOWED_PAGE_SIZES.includes(
+      parsedPageSize as (typeof ALLOWED_PAGE_SIZES)[number]
+    )
+  ) {
+    parsedPageSize = DEFAULT_PAGE_SIZE;
+  }
+
+  return { page: parsedPage, pageSize: parsedPageSize };
+}
+
 // Create Product
 export async function createProduct(
   formData: z.infer<typeof productSchema>
@@ -159,23 +217,52 @@ export async function toggleProductStatus(
   }
 }
 
-// Get Products for Admin
-export async function getProducts() {
-  const products = await prisma.product.findMany({
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      name: true,
-      description: true,
-      price: true,
-      category: true,
-      images: true,
-      isActive: true,
-      createdAt: true,
-    },
-  });
+// Get Products for Admin (with pagination)
+export async function getProducts(
+  params?: PaginationParams
+): Promise<PaginatedProducts> {
+  const { page, pageSize } = params ?? {
+    page: DEFAULT_PAGE,
+    pageSize: DEFAULT_PAGE_SIZE,
+  };
 
-  return products;
+  // Calculate offset (skip)
+  const skip = (page - 1) * pageSize;
+
+  // Execute count and findMany in parallel (async-parallel best practice)
+  const [totalItems, products] = await Promise.all([
+    prisma.product.count(),
+    prisma.product.findMany({
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: pageSize,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        category: true,
+        images: true,
+        isActive: true,
+        createdAt: true,
+      },
+    }),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+  // Clamp page to valid range
+  const validPage = Math.min(page, totalPages);
+
+  return {
+    products,
+    pagination: {
+      page: validPage,
+      pageSize,
+      totalItems,
+      totalPages,
+    },
+  };
 }
 
 // Get Single Product

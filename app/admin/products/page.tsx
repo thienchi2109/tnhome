@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { AdminHeader } from "@/components/admin/admin-header";
-import { getProducts } from "@/lib/actions";
+import { getProducts, normalizePaginationParams } from "@/lib/actions";
 import { formatPrice } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import Image from "next/image";
@@ -9,11 +9,39 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductActions } from "@/components/admin/product-actions";
 import { ProductFormSheet } from "@/components/admin/product-form-sheet";
+import { ProductsPagination } from "@/components/admin/products-pagination";
 
 export const dynamic = "force-dynamic";
 
-export default async function ProductsPage() {
-  const products = await getProducts();
+// Next.js 15 searchParams type (Promise-based)
+interface ProductsPageProps {
+  searchParams: Promise<{
+    page?: string;
+    pageSize?: string;
+    action?: string;
+    edit?: string;
+  }>;
+}
+
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  // Await searchParams (Next.js 15 requirement)
+  const params = await searchParams;
+
+  // Normalize pagination params with validation
+  const paginationParams = normalizePaginationParams(params.page, params.pageSize);
+
+  // Fetch paginated products
+  const { products, pagination } = await getProducts(paginationParams);
+
+  // Calculate display range
+  const startItem =
+    pagination.totalItems === 0
+      ? 0
+      : (pagination.page - 1) * pagination.pageSize + 1;
+  const endItem = Math.min(
+    pagination.page * pagination.pageSize,
+    pagination.totalItems
+  );
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -27,7 +55,13 @@ export default async function ProductsPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">
-              Tổng cộng {products.length} sản phẩm
+              {pagination.totalItems > 0 ? (
+                <>
+                  Hiển thị {startItem}-{endItem} trong {pagination.totalItems} sản phẩm
+                </>
+              ) : (
+                "Không có sản phẩm nào"
+              )}
             </p>
           </div>
           <Button asChild className="gap-2">
@@ -157,6 +191,15 @@ export default async function ProductsPage() {
               </Button>
             </div>
           </div>
+        )}
+
+        {/* Pagination Controls */}
+        {pagination.totalItems > 0 && (
+          <ProductsPagination
+            currentPage={pagination.page}
+            pageSize={pagination.pageSize}
+            totalPages={pagination.totalPages}
+          />
         )}
       </main>
 
