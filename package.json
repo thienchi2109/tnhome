@@ -23,6 +23,8 @@
   "dependencies": {
     "@clerk/localizations": "^3.35.0",
     "@clerk/nextjs": "^6.36.8",
+    "@dnd-kit/dom": "^0.2.4-beta-20260118161656",
+    "@dnd-kit/react": "^0.2.4-beta-20260118161656",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^6.19.2",
     "@radix-ui/react-alert-dialog": "^1.1.15",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { formatPrice, cn } from "@/lib/utils";
 import { ArrowLeft, Minus, Plus, Share2 } from "lucide-react";
@@ -15,6 +15,31 @@ interface ProductDetailClientProps {
 export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const newIndex = Math.round(container.scrollLeft / container.offsetWidth);
+    if (newIndex !== selectedImageIndex && newIndex >= 0 && newIndex < product.images.length) {
+      setSelectedImageIndex(newIndex);
+    }
+  }, [selectedImageIndex, product.images.length]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    let timeoutId: NodeJS.Timeout;
+    const debouncedScroll = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(handleScroll, 50);
+    };
+    container.addEventListener('scroll', debouncedScroll, { passive: true });
+    return () => {
+      container.removeEventListener('scroll', debouncedScroll);
+      clearTimeout(timeoutId);
+    };
+  }, [handleScroll]);
 
   const handleAddToCart = () => {
     console.log("Added to cart:", {
@@ -24,6 +49,16 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
       quantity,
     });
     // In a real app, calls cart store here
+  };
+
+  const scrollToImage = (index: number) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    container.scrollTo({
+      left: container.offsetWidth * index,
+      behavior: 'smooth',
+    });
+    setSelectedImageIndex(index);
   };
 
   return (
@@ -42,48 +77,89 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
         <div className="grid md:grid-cols-2 gap-8 lg:gap-16 items-start">
           {/* Left: Image Gallery */}
           <div className="space-y-4">
-            {/* Main Image */}
-            <div className="relative aspect-square bg-muted rounded-2xl overflow-hidden">
-              {product.images[selectedImageIndex] ? (
-                <Image
-                  src={product.images[selectedImageIndex]}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-neutral-200">
-                  <span className="text-muted-foreground">No image</span>
+            {/* Mobile: Swipeable Gallery */}
+            <div className="md:hidden">
+              <div
+                ref={scrollContainerRef}
+                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+              >
+                {product.images.map((img, idx) => (
+                  <div key={idx} className="snap-center shrink-0 w-full">
+                    <div className="relative aspect-square bg-muted rounded-2xl overflow-hidden">
+                      <Image
+                        src={img}
+                        alt={`${product.name} ${idx + 1}`}
+                        fill
+                        className="object-cover"
+                        priority={idx === 0}
+                        loading={idx === 0 ? undefined : 'lazy'}
+                        sizes="100vw"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Pagination dots */}
+              <div className="flex justify-center gap-2 py-4">
+                {product.images.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => scrollToImage(idx)}
+                    className={cn(
+                      "w-2 h-2 rounded-full transition-colors",
+                      selectedImageIndex === idx ? "bg-foreground" : "bg-border"
+                    )}
+                    aria-label={`Go to image ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Desktop: Main Image + Thumbnails */}
+            <div className="hidden md:block space-y-4">
+              {/* Main Image */}
+              <div className="relative aspect-square bg-muted rounded-2xl overflow-hidden">
+                {product.images[selectedImageIndex] ? (
+                  <Image
+                    src={product.images[selectedImageIndex]}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                    priority
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center bg-neutral-200">
+                    <span className="text-muted-foreground">No image</span>
+                  </div>
+                )}
+              </div>
+              {/* Thumbnails (Grid) */}
+              {product.images.length > 1 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {product.images.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedImageIndex(idx)}
+                      className={cn(
+                        "relative aspect-square bg-muted rounded-xl overflow-hidden ring-2 transition-all",
+                        selectedImageIndex === idx
+                          ? "ring-primary"
+                          : "ring-transparent hover:ring-primary/50"
+                      )}
+                    >
+                      <Image
+                        src={img}
+                        alt={`${product.name} ${idx + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="100px"
+                      />
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
-            {/* Thumbnails (Grid) */}
-            {product.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
-                {product.images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImageIndex(idx)}
-                    className={cn(
-                      "relative aspect-square bg-muted rounded-xl overflow-hidden ring-2 transition-all",
-                      selectedImageIndex === idx
-                        ? "ring-primary"
-                        : "ring-transparent hover:ring-primary/50"
-                    )}
-                  >
-                    <Image
-                      src={img}
-                      alt={`${product.name} ${idx + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="100px"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Right: Product Details - Sticky on Desktop */}

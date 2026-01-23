@@ -202,3 +202,12 @@
     font-size: 2.5rem;
   }
 }
+
+/* Hide scrollbar for swipe galleries */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
