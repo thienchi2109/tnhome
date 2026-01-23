@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Pencil, Trash2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +28,6 @@ interface ProductActionsProps {
 }
 
 export function ProductActions({ productId, isActive }: ProductActionsProps) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -64,10 +63,12 @@ export function ProductActions({ productId, isActive }: ProductActionsProps) {
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              onClick={() => router.push(`/admin/products/${productId}/edit`)}
+              asChild
             >
-              <Pencil className="h-4 w-4" />
-              <span className="sr-only">Chỉnh sửa</span>
+              <Link href={`/admin/products?edit=${productId}`}>
+                <Pencil className="h-4 w-4" />
+                <span className="sr-only">Chỉnh sửa</span>
+              </Link>
             </Button>
           </TooltipTrigger>
           <TooltipContent>Chỉnh sửa</TooltipContent>

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { getProducts } from "@/lib/actions";
 import { formatPrice } from "@/lib/utils";
@@ -7,6 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductActions } from "@/components/admin/product-actions";
+import { ProductFormSheet } from "@/components/admin/product-form-sheet";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +31,7 @@ export default async function ProductsPage() {
             </p>
           </div>
           <Button asChild className="gap-2">
-            <Link href="/admin/products/new">
+            <Link href="/admin/products?action=new">
               <Plus className="h-4 w-4" />
               Thêm sản phẩm
             </Link>
@@ -148,7 +150,7 @@ export default async function ProductsPage() {
                 Bắt đầu bằng việc tạo sản phẩm đầu tiên của bạn.
               </p>
               <Button asChild>
-                <Link href="/admin/products/new">
+                <Link href="/admin/products?action=new">
                   <Plus className="mr-2 h-4 w-4" />
                   Thêm sản phẩm
                 </Link>
@@ -157,6 +159,10 @@ export default async function ProductsPage() {
           </div>
         )}
       </main>
+
+      <Suspense fallback={null}>
+        <ProductFormSheet products={products} />
+      </Suspense>
     </div>
   );
 }

@@ -46,9 +46,10 @@ type ProductFormValues = z.infer<typeof productFormSchema>;
 
 interface ProductFormProps {
   initialData?: Product | null;
+  onSuccess?: () => void;
 }
 
-export function ProductForm({ initialData }: ProductFormProps) {
+export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -72,8 +73,12 @@ export function ProductForm({ initialData }: ProductFormProps) {
 
       if (result.success) {
         toast.success(initialData ? "Sản phẩm đã được cập nhật" : "Sản phẩm đã được tạo");
-        router.push("/admin/products");
-        router.refresh();
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push("/admin/products");
+          router.refresh();
+        }
       } else {
         toast.error(result.error);
       }

@@ -165,7 +165,7 @@ export default async function AdminDashboardPage() {
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Link
-              href="/admin/products/new"
+              href="/admin/products?action=new"
               className="group flex items-center gap-4 rounded-xl border bg-gradient-to-br from-blue-50 to-blue-50/50 p-4 transition-all hover:shadow-md hover:from-blue-100 hover:to-blue-50"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 shadow-sm transition-transform group-hover:scale-105">
