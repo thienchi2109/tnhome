@@ -1,11 +1,8 @@
 import { ProductGrid } from "@/components/product/product-grid";
 import { StorePagination } from "@/components/store/store-pagination";
 import { SectionHeader } from "@/components/store/section-header";
-import {
-  getActiveProductsPaginated,
-  normalizePaginationParams,
-  STORE_PAGE_SIZE,
-} from "@/lib/actions";
+import { getActiveProductsPaginated } from "@/lib/actions";
+import { STORE_PAGE_SIZE, normalizePaginationParams } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 

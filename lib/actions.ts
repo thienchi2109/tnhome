@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
+import type { PaginationParams } from "@/lib/constants";
 
 // Validation schemas
 const productSchema = z.object({
@@ -47,19 +48,12 @@ const createOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1, "Giỏ hàng không được trống"),
 });
 
-export type CreateOrderInput = z.infer<typeof createOrderSchema>;
-
-// Types
+// Types (internal - not exported from "use server" file)
 type ActionResult<T = unknown> =
   | { success: true; data: T }
   | { success: false; error: string };
 
 // Pagination types
-export interface PaginationParams {
-  page: number;
-  pageSize: number;
-}
-
 export interface PaginatedProducts {
   products: Array<{
     id: string;
@@ -79,39 +73,9 @@ export interface PaginatedProducts {
   };
 }
 
-// Pagination constants
+// Pagination constants (internal - not exported)
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
-const ALLOWED_PAGE_SIZES = [10, 12, 20, 24, 50, 100] as const;
-export const STORE_PAGE_SIZE = 24; // For public storefront grid (4 rows on desktop)
-
-// Helper to validate and normalize pagination params
-export function normalizePaginationParams(
-  page?: string | number | null,
-  pageSize?: string | number | null
-): PaginationParams {
-  // Parse and validate page
-  let parsedPage =
-    typeof page === "string" ? parseInt(page, 10) : (page ?? DEFAULT_PAGE);
-  if (isNaN(parsedPage) || parsedPage < 1) {
-    parsedPage = DEFAULT_PAGE;
-  }
-
-  // Parse and validate pageSize
-  let parsedPageSize =
-    typeof pageSize === "string"
-      ? parseInt(pageSize, 10)
-      : (pageSize ?? DEFAULT_PAGE_SIZE);
-  if (
-    !ALLOWED_PAGE_SIZES.includes(
-      parsedPageSize as (typeof ALLOWED_PAGE_SIZES)[number]
-    )
-  ) {
-    parsedPageSize = DEFAULT_PAGE_SIZE;
-  }
-
-  return { page: parsedPage, pageSize: parsedPageSize };
-}
 
 // Create Product
 export async function createProduct(
@@ -302,7 +266,7 @@ export async function getActiveProductsPaginated(
 ): Promise<PaginatedProducts> {
   const { page, pageSize } = params ?? {
     page: DEFAULT_PAGE,
-    pageSize: STORE_PAGE_SIZE,
+    pageSize: DEFAULT_PAGE_SIZE,
   };
 
   const skip = (page - 1) * pageSize;
@@ -425,7 +389,7 @@ async function findOrCreateCustomer(
 
 // Create Order
 export async function createOrder(
-  input: CreateOrderInput
+  input: z.infer<typeof createOrderSchema>
 ): Promise<ActionResult<{ orderId: string }>> {
   try {
     // 1. Validate input

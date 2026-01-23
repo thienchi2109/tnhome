@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__filesystem-with-morph__edit_file",
+      "Skill(react-best-practices)"
+    ]
+  }
+}

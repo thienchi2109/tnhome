@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { AdminHeader } from "@/components/admin/admin-header";
-import { getProducts, normalizePaginationParams } from "@/lib/actions";
+import { getProducts } from "@/lib/actions";
+import { normalizePaginationParams } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import Image from "next/image";
