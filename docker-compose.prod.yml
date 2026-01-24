@@ -1,7 +1,7 @@
 services:
-  # PostgreSQL Database (Supabase)
+  # PostgreSQL Database (Lightweight for 10GB VPS)
   postgres:
-    image: supabase/postgres:17.6.1.072
+    image: postgres:15-alpine
     container_name: tnhome-postgres
     restart: unless-stopped
     env_file:
