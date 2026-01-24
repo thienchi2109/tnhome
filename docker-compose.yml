@@ -26,17 +26,30 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     ports:
-      - "3003:3000"
+      - "3003:3003"
     env_file:
       - .env
     environment:
       - NODE_ENV=production
+      - PORT=3003
       # Override DATABASE_URL to use Docker network (postgres service name)
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-tnhome}
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
+
+  # Cloudflare Tunnel
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel run
+    env_file:
+      - .env
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - web
 
 volumes:
   postgres_data:

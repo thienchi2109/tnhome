@@ -36,13 +36,13 @@ export function Header() {
               </Button>
 
               <Link href="/" className="flex items-center gap-2 group shrink-0">
-                <div className="relative h-20 w-20 md:h-24 md:w-24 overflow-hidden rounded-lg bg-primary/5">
+                <div className="relative h-20 w-20 md:h-24 md:w-24 overflow-hidden rounded-lg">
                   <Image
                     src="/app-logo.png"
                     alt="TN Home"
                     fill
-                    className="object-cover"
-                    sizes="40px"
+                    className="object-contain"
+                    sizes="(max-width: 768px) 80px, 96px"
                     priority
                   />
                 </div>
