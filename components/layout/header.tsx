@@ -1,17 +1,19 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, useState } from "react";
 import Link from "next/link";
-import { ShoppingBag, Search, Menu, User, Settings, List, ChevronDown } from "lucide-react";
+import { ShoppingBag, Search, Menu, User, Settings, List, ChevronDown, Package, LogIn, UserPlus } from "lucide-react";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useCartStore } from "@/store/cart";
 
 import Image from "next/image";
 
 export function Header() {
   const { openCart } = useCartStore();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Use useSyncExternalStore for SSR-safe cart count
   const itemCount = useSyncExternalStore(
@@ -19,6 +21,17 @@ export function Header() {
     () => useCartStore.getState().getItemCount(),
     () => 0 // Server snapshot - return 0 during SSR
   );
+
+  const categories = [
+    { name: "Nội thất", href: "/products?category=furniture" },
+    { name: "Phòng khách", href: "/products?category=living-room" },
+    { name: "Phòng ngủ", href: "/products?category=bedroom" },
+    { name: "Bếp & Ăn uống", href: "/products?category=kitchen" },
+    { name: "Trang trí", href: "/products?category=decor" },
+    { name: "Đèn & Ánh sáng", href: "/products?category=lighting" },
+    { name: "Ngoài trời", href: "/products?category=outdoor" },
+    { name: "Sản phẩm mới", href: "/products?sort=newest", highlight: true },
+  ];
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -30,10 +43,78 @@ export function Header() {
           <div className="mx-auto flex items-center justify-between gap-4 md:gap-8 px-4 md:px-6 max-w-[1400px]">
             {/* Mobile Menu & Logo */}
             <div className="flex items-center gap-3 md:gap-8 shrink-0">
-              <Button variant="ghost" size="icon" className="lg:hidden h-10 w-10 -ml-2">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Menu</span>
-              </Button>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="lg:hidden h-10 w-10 -ml-2">
+                    <Menu className="h-6 w-6" />
+                    <span className="sr-only">Menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[300px] overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle className="text-left">
+                      <Link href="/" className="flex items-center gap-2">
+                        <div className="relative h-8 w-8 overflow-hidden rounded-sm">
+                          <Image
+                            src="/app-logo.png"
+                            alt="TN Home"
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                        <span className="font-bold text-lg text-primary">TN Home</span>
+                      </Link>
+                    </SheetTitle>
+                  </SheetHeader>
+                  <div className="flex flex-col gap-6 py-6">
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-sm font-medium text-muted-foreground px-2 pb-2">Danh mục</h3>
+                      <nav className="flex flex-col gap-1">
+                        {categories.map((category) => (
+                          <Link
+                            key={category.name}
+                            href={category.href}
+                            className={`px-2 py-2 text-sm font-medium rounded-md transition-colors ${category.highlight
+                              ? "text-primary bg-primary/5 hover:bg-primary/10"
+                              : "text-foreground hover:bg-muted"
+                              }`}
+                          >
+                            {category.name}
+                          </Link>
+                        ))}
+                      </nav>
+                    </div>
+
+                    <div className="border-t pt-6">
+                      <h3 className="text-sm font-medium text-muted-foreground px-2 pb-2">Tài khoản</h3>
+                      <SignedOut>
+                        <div className="grid gap-2 px-2">
+                          <Button asChild variant="outline" className="justify-start gap-2 w-full">
+                            <Link href="/sign-in">
+                              <LogIn className="h-4 w-4" />
+                              Đăng nhập
+                            </Link>
+                          </Button>
+                          <Button asChild className="justify-start gap-2 w-full">
+                            <Link href="/sign-up">
+                              <UserPlus className="h-4 w-4" />
+                              Đăng ký
+                            </Link>
+                          </Button>
+                        </div>
+                      </SignedOut>
+                      <SignedIn>
+                        <div className="flex flex-col gap-2 px-2">
+                          <Link href="/admin" className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors">
+                            <Settings className="h-4 w-4" />
+                            Quản trị viên
+                          </Link>
+                        </div>
+                      </SignedIn>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
 
               <Link href="/" className="flex items-center gap-2 group shrink-0">
                 <div className="relative h-20 w-20 md:h-24 md:w-24 overflow-hidden rounded-lg">
@@ -78,7 +159,12 @@ export function Header() {
             </div>
 
             {/* Mobile Search Icon Only */}
-            <Button variant="ghost" size="icon" className="lg:hidden ml-auto">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden ml-auto"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
               <Search className="h-6 w-6" />
             </Button>
 
@@ -130,11 +216,26 @@ export function Header() {
               </div>
             </div>
           </div>
+
+          {/* Mobile Search Expanded */}
+          {isSearchOpen && (
+            <div className="lg:hidden border-t px-4 py-3 bg-background animate-in slide-in-from-top-1 duration-200">
+              <div className="relative flex items-center">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="search"
+                  placeholder="Tìm kiếm sản phẩm..."
+                  className="w-full h-10 pl-9 pr-4 rounded-full border border-input bg-muted/20 focus:bg-background focus:ring-2 focus:ring-primary/20 outline-none text-sm transition-all"
+                  autoFocus
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Categories Navigation - Sticky */}
         <div className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b shadow-sm">
-          <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-2 px-4 md:px-6 overflow-x-auto no-scrollbar">
+          <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-2 px-4 md:px-6 overflow-x-auto">
 
             {/* All Categories Dropdown Trigger Design */}
             <Button className="shrink-0 gap-2 rounded-full hidden md:flex" size="sm">
@@ -144,22 +245,13 @@ export function Header() {
 
             <div className="h-6 w-px bg-border mx-2 hidden md:block" />
 
-            <nav className="flex items-center gap-1 md:gap-2 w-full">
-              {[
-                { name: "Nội thất", href: "/products?category=furniture" },
-                { name: "Phòng khách", href: "/products?category=living-room" },
-                { name: "Phòng ngủ", href: "/products?category=bedroom" },
-                { name: "Bếp & Ăn uống", href: "/products?category=kitchen" },
-                { name: "Trang trí", href: "/products?category=decor" },
-                { name: "Đèn & Ánh sáng", href: "/products?category=lighting" },
-                { name: "Ngoài trời", href: "/products?category=outdoor" },
-                { name: "Sản phẩm mới", href: "/products?sort=newest", highlight: true },
-              ].map((category) => (
+            <nav className="flex items-center gap-1 md:gap-2 pr-4 md:pr-0">
+              {categories.map((category) => (
                 <Link
                   key={category.name}
                   href={category.href}
                   className={`
-                    whitespace-nowrap px-3 py-1.5 text-sm font-medium rounded-full transition-all border border-transparent
+                    whitespace-nowrap px-3 py-1.5 text-sm font-medium rounded-full transition-all border border-transparent shrink-0
                     ${category.highlight
                       ? "text-primary bg-primary/5 hover:bg-primary/10 border-primary/20"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
