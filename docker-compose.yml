@@ -15,7 +15,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,10 +39,11 @@ services:
       postgres:
         condition: service_healthy
 
-  # Cloudflare Tunnel
+  # Cloudflare Tunnel (Only runs if manually enabled or profile active)
   tunnel:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
+    profiles: [ "production" ] # Only run when --profile production is used
     command: tunnel run
     env_file:
       - .env
