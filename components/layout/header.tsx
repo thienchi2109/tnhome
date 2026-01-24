@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore, useState } from "react";
 import Link from "next/link";
-import { ShoppingBag, Search, Menu, User, Settings, List, ChevronDown, Package, LogIn, UserPlus } from "lucide-react";
+import { ShoppingBag, Search, Menu, User, Settings, List, ChevronDown, LogIn, UserPlus } from "lucide-react";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";

@@ -22,6 +22,7 @@ model Product {
 
   @@index([category])
   @@index([isActive])
+  @@index([isActive, category, price])
 }
 
 model Customer {

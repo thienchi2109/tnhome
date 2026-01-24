@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 import type { PaginationParams } from "@/lib/constants";
+import { unstable_cache } from "next/cache";
 
 // Validation schemas
 const productSchema = z.object({
@@ -71,6 +72,14 @@ export interface PaginatedProducts {
     totalItems: number;
     totalPages: number;
   };
+}
+
+// Filter options for product queries
+export interface ProductFilterOptions {
+  search?: string;
+  categories?: string[];
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 // Pagination constants (internal - not exported)
@@ -262,7 +271,7 @@ export async function getActiveProducts(category?: string) {
 // Get Active Products for Storefront (with pagination)
 export async function getActiveProductsPaginated(
   params?: PaginationParams,
-  category?: string
+  filters?: string | ProductFilterOptions
 ): Promise<PaginatedProducts> {
   const { page, pageSize } = params ?? {
     page: DEFAULT_PAGE,
@@ -271,9 +280,33 @@ export async function getActiveProductsPaginated(
 
   const skip = (page - 1) * pageSize;
 
-  const whereClause = {
+  // Handle backwards compatibility: string = single category
+  const filterOptions: ProductFilterOptions =
+    typeof filters === "string" ? { categories: [filters] } : filters ?? {};
+
+  const whereClause: Prisma.ProductWhereInput = {
     isActive: true,
-    ...(category && { category }),
+    // Text search on name (case-insensitive)
+    ...(filterOptions.search && {
+      name: { contains: filterOptions.search, mode: "insensitive" },
+    }),
+    // Category filter (multiple via IN)
+    ...(filterOptions.categories &&
+      filterOptions.categories.length > 0 && {
+        category: { in: filterOptions.categories },
+      }),
+    // Price range
+    ...((filterOptions.minPrice !== undefined ||
+      filterOptions.maxPrice !== undefined) && {
+      price: {
+        ...(filterOptions.minPrice !== undefined && {
+          gte: filterOptions.minPrice,
+        }),
+        ...(filterOptions.maxPrice !== undefined && {
+          lte: filterOptions.maxPrice,
+        }),
+      },
+    }),
   };
 
   // Execute count and findMany in parallel (async-parallel best practice)
@@ -321,6 +354,24 @@ export async function getCategories() {
 
   return categories.map((c) => c.category);
 }
+
+// Get Price Range for Filter Slider (cached)
+export const getPriceRange = unstable_cache(
+  async () => {
+    const result = await prisma.product.aggregate({
+      _min: { price: true },
+      _max: { price: true },
+      where: { isActive: true },
+    });
+
+    return {
+      min: result._min.price ?? 0,
+      max: result._max.price ?? 10_000_000,
+    };
+  },
+  ["product-price-range"],
+  { revalidate: 300, tags: ["products"] }
+);
 
 // ============================================
 // Order Actions
