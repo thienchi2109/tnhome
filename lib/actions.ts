@@ -298,12 +298,12 @@ export async function getActiveProductsPaginated(
 
   const whereClause: Prisma.ProductWhereInput = {
     isActive: true,
-    // Text search on name using contains (case-insensitive)
+    // Text search on name and description using contains (case-insensitive)
     ...(filterOptions.search && {
-      name: {
-        contains: filterOptions.search,
-        mode: "insensitive" as const,
-      },
+      OR: [
+        { name: { contains: filterOptions.search, mode: "insensitive" as const } },
+        { description: { contains: filterOptions.search, mode: "insensitive" as const } },
+      ],
     }),
     // Category filter (multiple via IN)
     ...(filterOptions.categories &&

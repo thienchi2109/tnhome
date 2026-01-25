@@ -26,7 +26,12 @@ CREATE INDEX IF NOT EXISTS "Product_active_price_idx"
 ON "Product" ("isActive", price)
 WHERE "isActive" = true;
 
--- 6. Analyze table
+-- 6. GIN trigram index for description search (requires pg_trgm extension)
+CREATE INDEX CONCURRENTLY IF NOT EXISTS "Product_description_trgm_active_idx"
+ON "Product" USING gin (description gin_trgm_ops)
+WHERE "isActive" = true AND description IS NOT NULL;
+
+-- 7. Analyze table
 ANALYZE "Product";
 
 -- Show results

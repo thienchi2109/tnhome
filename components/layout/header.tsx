@@ -2,12 +2,13 @@
 
 import { useSyncExternalStore, useState } from "react";
 import Link from "next/link";
-import { ShoppingBag, Search, Menu, User, Settings, List, ChevronDown, LogIn, UserPlus } from "lucide-react";
+import { ShoppingBag, Search, Menu, User, Settings, ChevronDown, LogIn, UserPlus } from "lucide-react";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useCartStore } from "@/store/cart";
+import { HeaderSearchInput } from "./header-search-input";
 
 import Image from "next/image";
 
@@ -140,22 +141,7 @@ export function Header() {
 
             {/* Search Bar - Centered & Prominent */}
             <div className="hidden lg:flex flex-1 max-w-2xl mx-auto">
-              <div className="relative w-full flex items-center">
-                <div className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-12 bg-muted/50 rounded-l-full border border-r-0 border-input">
-                  <Search className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm nội thất, trang trí và hơn thế nữa..."
-                  className="w-full h-11 pl-12 pr-12 bg-muted/10 border border-input focus:border-primary rounded-full outline-none text-sm transition-all focus:bg-background focus:ring-4 focus:ring-primary/10"
-                />
-                <Button
-                  size="icon"
-                  className="absolute right-1 top-1 h-9 w-9 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
+              <HeaderSearchInput variant="desktop" placeholder="Tìm kiếm nội thất..." />
             </div>
 
             {/* Mobile Search Icon Only */}
@@ -220,15 +206,12 @@ export function Header() {
           {/* Mobile Search Expanded */}
           {isSearchOpen && (
             <div className="lg:hidden border-t px-4 py-3 bg-background animate-in slide-in-from-top-1 duration-200">
-              <div className="relative flex items-center">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="search"
-                  placeholder="Tìm kiếm sản phẩm..."
-                  className="w-full h-10 pl-9 pr-4 rounded-full border border-input bg-muted/20 focus:bg-background focus:ring-2 focus:ring-primary/20 outline-none text-sm transition-all"
-                  autoFocus
-                />
-              </div>
+              <HeaderSearchInput
+                variant="mobile"
+                autoFocus
+                placeholder="Tìm kiếm..."
+                onSearchSubmit={() => setIsSearchOpen(false)}
+              />
             </div>
           )}
         </div>
