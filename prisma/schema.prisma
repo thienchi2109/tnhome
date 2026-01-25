@@ -20,9 +20,11 @@ model Product {
   updatedAt   DateTime    @updatedAt
   orderItems  OrderItem[]
 
+  // Optimized indexes for filtering/searching
   @@index([category])
   @@index([isActive])
   @@index([isActive, category, price])
+  @@index([isActive, createdAt(sort: Desc)])  // Sort optimization
 }
 
 model Customer {
