@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 import type { PaginationParams } from "@/lib/constants";
@@ -107,6 +107,9 @@ export async function createProduct(
 
     revalidatePath("/admin/products");
     revalidatePath("/");
+    // Invalidate cached data: new category may appear, price range may change
+    revalidateTag("categories", "default");
+    revalidateTag("products", "default");
 
     return { success: true, data: { id: product.id } };
   } catch (error) {
@@ -142,6 +145,9 @@ export async function updateProduct(
     revalidatePath("/admin/products");
     revalidatePath(`/product/${id}`);
     revalidatePath("/");
+    // Invalidate cached data: category or price may have changed
+    revalidateTag("categories", "default");
+    revalidateTag("products", "default");
 
     return { success: true, data: { id: product.id } };
   } catch (error) {
@@ -162,6 +168,9 @@ export async function deleteProduct(id: string): Promise<ActionResult<null>> {
 
     revalidatePath("/admin/products");
     revalidatePath("/");
+    // Invalidate cached data: category may become empty, price range may change
+    revalidateTag("categories", "default");
+    revalidateTag("products", "default");
 
     return { success: true, data: null };
   } catch (error) {
@@ -183,6 +192,9 @@ export async function toggleProductStatus(
 
     revalidatePath("/admin/products");
     revalidatePath("/");
+    // Invalidate cached data: active category list and price range may change
+    revalidateTag("categories", "default");
+    revalidateTag("products", "default");
 
     return { success: true, data: null };
   } catch (error) {
