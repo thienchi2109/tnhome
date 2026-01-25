@@ -140,7 +140,7 @@ export function ActiveFilterTags() {
             type="button"
             onClick={() => removeFilter(tag)}
             className={cn(
-              "ml-0.5 rounded-full p-0.5",
+              "ml-0.5 rounded-full p-1.5",
               "hover:bg-foreground/10",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               "touch-action-manipulation"

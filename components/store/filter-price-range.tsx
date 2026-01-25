@@ -115,6 +115,7 @@ export function FilterPriceRange({ min, max }: FilterPriceRangeProps) {
         onValueChange={handleSliderChange}
         className="py-4"
         aria-label="Khoảng giá"
+        aria-valuetext={`${formatPrice(range[0])} đến ${formatPrice(range[1])}`}
       />
 
       <div className="flex items-center gap-3">

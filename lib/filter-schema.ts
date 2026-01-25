@@ -19,12 +19,14 @@ export const productFilterSchema = z
 
     // Category filter (comma-separated string -> array)
     // Handles both single string and array from Next.js searchParams
+    // Limited to 20 categories max to prevent abuse
     category: z.preprocess((val) => {
       if (typeof val === "string") {
         const parsed = val
           .split(",")
           .map((s) => s.trim())
-          .filter(Boolean);
+          .filter(Boolean)
+          .slice(0, 20); // Limit to 20 categories
         return parsed.length > 0 ? parsed : undefined;
       }
       if (Array.isArray(val)) {
@@ -32,15 +34,16 @@ export const productFilterSchema = z
         const parsed = val
           .flatMap((v) => (typeof v === "string" ? v.split(",") : []))
           .map((s) => s.trim())
-          .filter(Boolean);
+          .filter(Boolean)
+          .slice(0, 20); // Limit to 20 categories
         return parsed.length > 0 ? parsed : undefined;
       }
       return undefined;
-    }, z.array(z.string().min(1)).optional()),
+    }, z.array(z.string().min(1).max(100)).max(20).optional()),
 
-    // Price range (VND as integers)
-    minPrice: z.coerce.number().int().nonnegative().optional(),
-    maxPrice: z.coerce.number().int().positive().optional(),
+    // Price range (VND as integers, max 1 billion VND)
+    minPrice: z.coerce.number().int().nonnegative().max(1_000_000_000).optional(),
+    maxPrice: z.coerce.number().int().positive().max(1_000_000_000).optional(),
   })
   .refine(
     (data) => {
