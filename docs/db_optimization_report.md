@@ -17,20 +17,30 @@ Comprehensive performance optimization applied to product filtering and search q
 ### 1. **Text Search Full Table Scans** (CRITICAL)
 **Problem:** Every product search used `ILIKE '%search%'` causing full table scans
 - **Impact:** O(n) performance - degrades linearly with table size
-- **Solution:** GIN trigram index with `pg_trgm` extension
-- **Performance Gain:** 🚀 **10-100x faster** on tables with 10k+ products
+- **Solution:** GIN trigram index with `pg_trgm` extension (requires superuser)
+- **Performance Gain:** 🚀 **10-100x faster** on tables with 10k+ products (when pg_trgm enabled)
+- **Current Status:** ⚠️ Pending - pg_trgm requires superuser privileges
 
-**Before:**
+**Current Implementation (uses contains - works but slower):**
 ```typescript
 name: { contains: filterOptions.search, mode: "insensitive" }
-// PostgreSQL: WHERE name ILIKE '%search%' (full table scan)
+// PostgreSQL: WHERE name ILIKE '%search%' (sequential scan on unindexed column)
 ```
 
-**After:**
+**Future Enhancement (when pg_trgm is enabled):**
 ```typescript
-name: { search: filterOptions.search, mode: "insensitive" }
-// PostgreSQL: Uses GIN trigram index (index scan)
+// Requires fullTextSearch preview feature in schema.prisma:
+// generator client {
+//   provider = "prisma-client-js"
+//   previewFeatures = ["fullTextSearch"]
+// }
+name: { search: filterOptions.search }
+// PostgreSQL: Uses GIN trigram index (fast index scan)
 ```
+
+**Note:** The pg_trgm extension couldn't be enabled due to Supabase Docker role restrictions. 
+Text search currently uses `contains` which works correctly but performs full table scans.
+For production, enable pg_trgm during database setup with superuser access.
 
 ### 2. **Missing Composite Indexes** (HIGH)
 **Problem:** Queries filter on `isActive` + sort by `createdAt`, but no composite index existed
@@ -114,12 +124,14 @@ export const getCategories = unstable_cache(
 ```
 - **Impact:** Category lookups now cached for 1 hour (zero DB hits)
 
-✅ **2. Optimized Text Search**
+✅ **2. Text Search (using contains)**
 ```typescript
-// Before: contains (ILIKE '%search%')
-// After: search (uses trigram index)
-name: { search: filterOptions.search, mode: "insensitive" }
+// Uses case-insensitive contains filter
+// Works correctly but uses sequential scan (pg_trgm would make it faster)
+name: { contains: filterOptions.search, mode: "insensitive" }
 ```
+- **Status:** ✅ Working correctly
+- **Future:** Enable pg_trgm for 10-100x faster search when superuser access available
 
 ---
 
