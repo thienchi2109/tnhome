@@ -136,10 +136,14 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             ) : (
               <div className="text-center py-16">
                 <p className="text-muted-foreground text-lg">
-                  Không tìm thấy sản phẩm nào phù hợp.
+                  {filters.q
+                    ? `Không tìm thấy kết quả cho "${filters.q}"`
+                    : "Không tìm thấy sản phẩm nào phù hợp."}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Thử điều chỉnh bộ lọc hoặc xóa bộ lọc để xem thêm sản phẩm.
+                  {filters.q
+                    ? "Thử từ khóa khác hoặc xóa bộ lọc để xem thêm sản phẩm."
+                    : "Thử điều chỉnh bộ lọc hoặc xóa bộ lọc để xem thêm sản phẩm."}
                 </p>
               </div>
             )}

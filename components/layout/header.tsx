@@ -141,7 +141,7 @@ export function Header() {
 
             {/* Search Bar - Centered & Prominent */}
             <div className="hidden lg:flex flex-1 max-w-2xl mx-auto">
-              <HeaderSearchInput variant="desktop" placeholder="Tìm kiếm nội thất..." />
+              <HeaderSearchInput variant="desktop" placeholder="Tìm kiếm sản phẩm..." />
             </div>
 
             {/* Mobile Search Icon Only */}
