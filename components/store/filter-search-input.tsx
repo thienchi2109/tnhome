@@ -23,7 +23,7 @@ export function FilterSearchInput() {
   // Track previous URL value to sync state when URL changes externally
   const [prevUrlValue, setPrevUrlValue] = useState(urlValue);
 
-  // Sync local state when URL changes (e.g., "Clear All" clicked)
+  // Sync local state when URL changes (e.g., "Xóa Tất Cả" clicked)
   if (urlValue !== prevUrlValue) {
     setValue(urlValue);
     setPrevUrlValue(urlValue);

@@ -32,7 +32,7 @@ export function FilterPriceRange({ min, max }: FilterPriceRangeProps) {
   const [prevUrlMin, setPrevUrlMin] = useState(currentMin);
   const [prevUrlMax, setPrevUrlMax] = useState(currentMax);
 
-  // Sync local state when URL changes (e.g., "Clear All" clicked)
+  // Sync local state when URL changes (e.g., "Xóa Tất Cả" clicked)
   if (currentMin !== prevUrlMin || currentMax !== prevUrlMax) {
     setRange([currentMin, currentMax]);
     setPrevUrlMin(currentMin);
