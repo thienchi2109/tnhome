@@ -10,28 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ImageUpload } from "@/components/admin/image-upload";
+import { CategoryCombobox } from "@/components/admin/category-combobox";
 import { createProduct, updateProduct } from "@/lib/actions";
 import { toast } from "sonner";
 import type { Product } from "@/types";
-
-const CATEGORIES = [
-  "Phòng khách",
-  "Phòng ngủ",
-  "Nhà bếp",
-  "Phòng tắm",
-  "Văn phòng",
-  "Ngoài trời",
-  "Trang trí",
-  "Đèn",
-];
 
 const productFormSchema = z.object({
   name: z.string().min(1, "Tên là bắt buộc").max(200),
@@ -47,9 +30,10 @@ type ProductFormValues = z.infer<typeof productFormSchema>;
 interface ProductFormProps {
   initialData?: Product | null;
   onSuccess?: () => void;
+  categories?: string[];
 }
 
-export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
+export function ProductForm({ initialData, onSuccess, categories = [] }: ProductFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -86,6 +70,7 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
   };
 
   const images = useWatch({ control: form.control, name: "images" });
+  const currentCategory = useWatch({ control: form.control, name: "category" });
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -160,22 +145,13 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
         {/* Category */}
         <div className="space-y-2">
           <Label>Danh mục</Label>
-          <Select
-            value={useWatch({ control: form.control, name: "category" })}
-            onValueChange={(value) => form.setValue("category", value)}
+          <CategoryCombobox
+            value={currentCategory}
+            onChange={(value) => form.setValue("category", value)}
+            categories={categories}
             disabled={isPending}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Chọn danh mục" />
-            </SelectTrigger>
-            <SelectContent>
-              {CATEGORIES.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder="Chọn hoặc tạo danh mục..."
+          />
           {form.formState.errors.category && (
             <p className="text-sm text-red-500">
               {form.formState.errors.category.message}

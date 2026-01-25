@@ -15,16 +15,23 @@ import { Badge } from "@/components/ui/badge";
 import { ProductFilters } from "./product-filters";
 import { cn } from "@/lib/utils";
 
+interface CategoryWithSlug {
+  name: string;
+  slug: string;
+}
+
 interface MobileFilterSheetProps {
   categories: string[];
   priceRange: { min: number; max: number };
   activeFilterCount: number;
+  categoriesWithSlugs?: CategoryWithSlug[];
 }
 
 export function MobileFilterSheet({
   categories,
   priceRange,
   activeFilterCount,
+  categoriesWithSlugs,
 }: MobileFilterSheetProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -141,7 +148,11 @@ export function MobileFilterSheet({
             className="flex-1 overflow-y-auto px-6 py-6"
             style={{ overscrollBehavior: "contain" }}
           >
-            <ProductFilters categories={categories} priceRange={priceRange} />
+            <ProductFilters
+              categories={categories}
+              priceRange={priceRange}
+              categoriesWithSlugs={categoriesWithSlugs}
+            />
           </div>
 
           {/* Sticky Footer with Actions */}

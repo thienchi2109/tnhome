@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { AdminHeader } from "@/components/admin/admin-header";
-import { getProducts } from "@/lib/actions";
+import { getProducts, getAllCategories } from "@/lib/actions";
 import { normalizePaginationParams } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
 import { Plus } from "lucide-react";
@@ -31,8 +31,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   // Normalize pagination params with validation
   const paginationParams = normalizePaginationParams(params.page, params.pageSize);
 
-  // Fetch paginated products
-  const { products, pagination } = await getProducts(paginationParams);
+  // Fetch products and categories in parallel
+  const [{ products, pagination }, categories] = await Promise.all([
+    getProducts(paginationParams),
+    getAllCategories(),
+  ]);
 
   // Calculate display range
   const startItem =
@@ -205,7 +208,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       </main>
 
       <Suspense fallback={null}>
-        <ProductFormSheet products={products} />
+        <ProductFormSheet products={products} categories={categories} />
       </Suspense>
     </div>
   );

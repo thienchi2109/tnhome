@@ -1,37 +1,67 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
+import { useTransition, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { cn, toSlug } from "@/lib/utils";
+
+interface CategoryWithSlug {
+  name: string;
+  slug: string;
+}
 
 interface FilterCategoryGroupProps {
   categories: string[];
+  categoriesWithSlugs?: CategoryWithSlug[];
 }
 
-export function FilterCategoryGroup({ categories }: FilterCategoryGroupProps) {
+export function FilterCategoryGroup({
+  categories,
+  categoriesWithSlugs,
+}: FilterCategoryGroupProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const selectedCategories =
-    searchParams.get("category")?.split(",").filter(Boolean) || [];
+  // Build mappings for slug <-> name conversion
+  const { nameToSlug, slugToName } = useMemo(() => {
+    if (categoriesWithSlugs) {
+      return {
+        nameToSlug: new Map(categoriesWithSlugs.map(c => [c.name, c.slug])),
+        slugToName: new Map(categoriesWithSlugs.map(c => [c.slug, c.name])),
+      };
+    }
+    // Fallback: generate slugs from category names
+    return {
+      nameToSlug: new Map(categories.map(c => [c, toSlug(c)])),
+      slugToName: new Map(categories.map(c => [toSlug(c), c])),
+    };
+  }, [categories, categoriesWithSlugs]);
+
+  // Parse URL slugs into selected category names
+  const selectedSlugs = searchParams.get("category")?.split(",").filter(Boolean) || [];
+  const selectedCategories = selectedSlugs
+    .map(slug => slugToName.get(slug) ?? slug)
+    .filter(Boolean);
 
   const handleCategoryChange = (category: string, checked: boolean) => {
     startTransition(() => {
       const params = new URLSearchParams(searchParams.toString());
-      let newCategories = [...selectedCategories];
+      const slug = nameToSlug.get(category) ?? toSlug(category);
+      let newSlugs = [...selectedSlugs];
 
       if (checked) {
-        newCategories.push(category);
+        if (!newSlugs.includes(slug)) {
+          newSlugs.push(slug);
+        }
       } else {
-        newCategories = newCategories.filter((c) => c !== category);
+        newSlugs = newSlugs.filter((s) => s !== slug);
       }
 
-      if (newCategories.length > 0) {
-        params.set("category", newCategories.join(","));
+      if (newSlugs.length > 0) {
+        params.set("category", newSlugs.join(","));
       } else {
         params.delete("category");
       }

@@ -12,7 +12,16 @@ import { HeaderSearchInput } from "./header-search-input";
 
 import Image from "next/image";
 
-export function Header() {
+interface CategoryWithSlug {
+  name: string;
+  slug: string;
+}
+
+interface HeaderProps {
+  categoriesWithSlugs?: CategoryWithSlug[];
+}
+
+export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
   const { openCart } = useCartStore();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
@@ -23,14 +32,13 @@ export function Header() {
     () => 0 // Server snapshot - return 0 during SSR
   );
 
+  // Build dynamic categories from DB, with a static "Sản phẩm mới" at the end
   const categories = [
-    { name: "Nội thất", href: "/products?category=furniture" },
-    { name: "Phòng khách", href: "/products?category=living-room" },
-    { name: "Phòng ngủ", href: "/products?category=bedroom" },
-    { name: "Bếp & Ăn uống", href: "/products?category=kitchen" },
-    { name: "Trang trí", href: "/products?category=decor" },
-    { name: "Đèn & Ánh sáng", href: "/products?category=lighting" },
-    { name: "Ngoài trời", href: "/products?category=outdoor" },
+    ...categoriesWithSlugs.map(c => ({
+      name: c.name,
+      href: `/products?category=${c.slug}`,
+      highlight: false,
+    })),
     { name: "Sản phẩm mới", href: "/products?sort=newest", highlight: true },
   ];
 

@@ -7,6 +7,7 @@ import { auth } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 import type { PaginationParams } from "@/lib/constants";
 import { unstable_cache } from "next/cache";
+import { toSlug } from "@/lib/utils";
 
 // Validation schemas
 const productSchema = z.object({
@@ -373,6 +374,38 @@ export const getCategories = unstable_cache(
   ["categories"],
   {
     revalidate: 3600, // Cache for 1 hour
+    tags: ["categories"],
+  }
+);
+
+// Get All Categories (for admin - includes categories from inactive products)
+export async function getAllCategories(): Promise<string[]> {
+  const categories = await prisma.product.findMany({
+    select: { category: true },
+    distinct: ["category"],
+    orderBy: { category: "asc" },
+  });
+
+  return categories.map((c) => c.category);
+}
+
+// Get Categories with Slugs (for dynamic navigation)
+export const getCategoriesWithSlugs = unstable_cache(
+  async () => {
+    const names = await prisma.product.findMany({
+      where: { isActive: true },
+      select: { category: true },
+      distinct: ["category"],
+    });
+
+    return names.map((c) => ({
+      name: c.category,
+      slug: toSlug(c.category),
+    }));
+  },
+  ["categories-with-slugs"],
+  {
+    revalidate: 3600,
     tags: ["categories"],
   }
 );
