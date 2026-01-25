@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, Loader2 } from "lucide-react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState, useTransition, useRef, KeyboardEvent, FormEvent } from "react";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,6 @@ export function HeaderSearchInput({
 }: HeaderSearchInputProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -35,17 +34,13 @@ export function HeaderSearchInput({
 
   const performSearch = () => {
     startTransition(() => {
-      const params = new URLSearchParams(searchParams.toString());
+      // Header search starts fresh - clears all filters for global search
+      const params = new URLSearchParams();
 
       const trimmedValue = value.trim();
       if (trimmedValue) {
         params.set("q", trimmedValue);
-      } else {
-        params.delete("q");
       }
-
-      // Reset page when searching
-      params.delete("page");
 
       const queryString = params.toString();
       const url = queryString ? `/products?${queryString}` : "/products";
