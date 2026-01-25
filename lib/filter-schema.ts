@@ -58,18 +58,82 @@ export const productFilterSchema = z
 
 export type ProductFilterParams = z.infer<typeof productFilterSchema>;
 
+// Individual field schemas for partial parsing
+const pageSchema = z.coerce.number().int().min(1).max(1000);
+const qSchema = z
+  .string()
+  .trim()
+  .max(100)
+  .transform((v) => (v === "" ? undefined : v));
+const categorySchema = z.preprocess((val) => {
+  if (typeof val === "string") {
+    const parsed = val
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 20);
+    return parsed.length > 0 ? parsed : undefined;
+  }
+  if (Array.isArray(val)) {
+    const parsed = val
+      .flatMap((v) => (typeof v === "string" ? v.split(",") : []))
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 20);
+    return parsed.length > 0 ? parsed : undefined;
+  }
+  return undefined;
+}, z.array(z.string().min(1).max(100)).max(20));
+const minPriceSchema = z.coerce.number().int().nonnegative().max(1_000_000_000);
+const maxPriceSchema = z.coerce.number().int().positive().max(1_000_000_000);
+
 /**
  * Parse URL search params into validated filter params
+ * Uses partial preservation: invalid fields are ignored, valid ones are kept
  */
 export function parseFilterParams(
   searchParams: Record<string, string | string[] | undefined>
 ): ProductFilterParams {
-  const result = productFilterSchema.safeParse(searchParams);
-  if (result.success) {
-    return result.data;
+  const result: ProductFilterParams = { page: 1 };
+
+  // Parse page - fallback to 1 on invalid
+  const pageResult = pageSchema.safeParse(searchParams.page);
+  if (pageResult.success) {
+    result.page = pageResult.data;
   }
-  // Return defaults on validation error
-  return { page: 1 };
+
+  // Parse search query
+  const qResult = qSchema.safeParse(searchParams.q);
+  if (qResult.success && qResult.data !== undefined) {
+    result.q = qResult.data;
+  }
+
+  // Parse category
+  const categoryResult = categorySchema.safeParse(searchParams.category);
+  if (categoryResult.success && categoryResult.data !== undefined) {
+    result.category = categoryResult.data;
+  }
+
+  // Parse price range with relationship validation
+  const minResult = minPriceSchema.safeParse(searchParams.minPrice);
+  const maxResult = maxPriceSchema.safeParse(searchParams.maxPrice);
+  const minPrice = minResult.success ? minResult.data : undefined;
+  const maxPrice = maxResult.success ? maxResult.data : undefined;
+
+  if (minPrice !== undefined && maxPrice !== undefined) {
+    // Both defined: only include if min <= max
+    if (minPrice <= maxPrice) {
+      result.minPrice = minPrice;
+      result.maxPrice = maxPrice;
+    }
+    // If min > max, discard both (invalid range)
+  } else {
+    // Only one defined: include the valid one
+    if (minPrice !== undefined) result.minPrice = minPrice;
+    if (maxPrice !== undefined) result.maxPrice = maxPrice;
+  }
+
+  return result;
 }
 
 /**
