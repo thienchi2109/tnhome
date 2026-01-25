@@ -14,8 +14,20 @@ export function FilterSearchInput() {
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Get current value from URL
+  const urlValue = searchParams.get("q") ?? "";
+
   // Local state for immediate feedback before debounce
-  const [value, setValue] = useState(searchParams.get("q") ?? "");
+  const [value, setValue] = useState(urlValue);
+
+  // Track previous URL value to sync state when URL changes externally
+  const [prevUrlValue, setPrevUrlValue] = useState(urlValue);
+
+  // Sync local state when URL changes (e.g., "Clear All" clicked)
+  if (urlValue !== prevUrlValue) {
+    setValue(urlValue);
+    setPrevUrlValue(urlValue);
+  }
 
   const handleSearch = useDebouncedCallback((term: string) => {
     startTransition(() => {
