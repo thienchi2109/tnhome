@@ -95,6 +95,21 @@ export function FilterPriceRange({ min, max }: FilterPriceRangeProps) {
     updateFilters(newMin, newMax);
   };
 
+  // Handle edge case: no range to filter when all products have same price
+  // Check AFTER hooks to comply with Rules of Hooks
+  if (min === max) {
+    return (
+      <div className="space-y-4">
+        <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          Khoảng giá
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Tất cả sản phẩm có giá {formatPrice(min)}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
