@@ -97,7 +97,11 @@ export function FilterPriceRange({ min, max }: FilterPriceRangeProps) {
 
   return (
     <div
-      className={cn("space-y-4", isPending && "opacity-60 pointer-events-none")}
+      className={cn(
+        "space-y-4",
+        "transition-opacity duration-200 motion-reduce:transition-none",
+        isPending && "opacity-60 pointer-events-none"
+      )}
     >
       <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
         Khoảng giá

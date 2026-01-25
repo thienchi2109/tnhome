@@ -119,6 +119,7 @@ export function ActiveFilterTags() {
     <div
       className={cn(
         "flex flex-wrap items-center gap-2",
+        "transition-opacity duration-200 motion-reduce:transition-none",
         isPending && "opacity-60 pointer-events-none"
       )}
       role="region"
@@ -131,7 +132,7 @@ export function ActiveFilterTags() {
             "inline-flex items-center gap-1",
             "bg-accent text-accent-foreground",
             "rounded-full px-3 py-1 text-sm",
-            "transition-colors"
+            "transition-colors duration-200 motion-reduce:transition-none"
           )}
         >
           <span>{tag.label}</span>

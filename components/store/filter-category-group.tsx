@@ -54,7 +54,11 @@ export function FilterCategoryGroup({ categories }: FilterCategoryGroupProps) {
       </div>
       <ScrollArea className="h-[200px] pr-3">
         <fieldset
-          className={cn("space-y-3", isPending && "opacity-60 pointer-events-none")}
+          className={cn(
+            "space-y-3",
+            "transition-opacity duration-200 motion-reduce:transition-none",
+            isPending && "opacity-60 pointer-events-none"
+          )}
         >
           <legend className="sr-only">Lọc theo danh mục</legend>
           {categories.map((category) => {
@@ -78,7 +82,8 @@ export function FilterCategoryGroup({ categories }: FilterCategoryGroupProps) {
                   htmlFor={id}
                   className={cn(
                     "text-sm font-medium cursor-pointer flex-1 py-2",
-                    "transition-colors group-hover:text-accent",
+                    "transition-colors duration-200 motion-reduce:transition-none",
+                    "group-hover:text-accent",
                     isSelected && "text-accent"
                   )}
                 >

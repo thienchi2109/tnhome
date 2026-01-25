@@ -71,6 +71,8 @@ export function MobileFilterSheet({
           "fixed bottom-6 right-6 z-40 rounded-full shadow-lg",
           "h-14 w-14 p-0",
           "touch-action-manipulation",
+          "transition-transform duration-200 motion-reduce:transition-none",
+          "hover:scale-105 active:scale-95",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         )}
         aria-label={
@@ -100,7 +102,8 @@ export function MobileFilterSheet({
           className={cn(
             "max-h-[85vh] rounded-t-2xl",
             "flex flex-col",
-            "overscroll-contain"
+            "overscroll-contain",
+            "motion-reduce:transition-none motion-reduce:animate-none"
           )}
           style={{ overscrollBehavior: "contain" }}
         >

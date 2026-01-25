@@ -286,11 +286,11 @@ export async function getActiveProductsPaginated(
 
   const whereClause: Prisma.ProductWhereInput = {
     isActive: true,
-    // Text search on name (optimized with trigram index)
+    // Text search on name using contains (case-insensitive)
     ...(filterOptions.search && {
-      name: { 
-        search: filterOptions.search,  // Uses GIN trigram index (10-100x faster)
-        mode: "insensitive" 
+      name: {
+        contains: filterOptions.search,
+        mode: "insensitive" as const,
       },
     }),
     // Category filter (multiple via IN)
