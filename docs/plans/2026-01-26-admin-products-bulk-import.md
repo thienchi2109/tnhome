@@ -1,0 +1,710 @@
+# Admin Products Bulk Import Implementation Plan
+
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** Add an admin Excel bulk-import flow that upserts products by `product_ID`, and add a required unique `product_ID` column to the Products table.
+
+**Architecture:** Introduce a new `productId` field on `Product` mapped to DB column `product_ID`, backfill existing rows, and enforce uniqueness. Parse `.xlsx` files server-side with ExcelJS and validate rows with Zod before upserting via Prisma. Provide an admin import sheet in the Products page that uploads a file, triggers a server action, and shows a summary + row-level errors.
+
+**Tech Stack:** Next.js 15 (app router, server actions), Prisma/Postgres, ExcelJS, Zod, Vitest, shadcn/ui components, Sonner.
+
+---
+
+### Task 1: Add `product_ID` column + wire through types/actions
+
+**Files:**
+- Modify: `prisma/schema.prisma`
+- Create: `prisma/migrations/<timestamp>_add_product_id/migration.sql`
+- Modify: `types/index.ts`
+- Modify: `lib/actions.ts`
+- Modify: `components/admin/product-form.tsx`
+
+**Step 1: Update Prisma schema (no tests yet)**
+
+```prisma
+model Product {
+  id          String      @id @default(cuid())
+  productId   String      @unique @map("product_ID")
+  name        String
+  description String?
+  price       Int
+  images      String[]
+  category    String
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+
+  @@index([category])
+  @@index([isActive])
+  @@index([isActive, category, price])
+  @@index([isActive, createdAt(sort: Desc)])
+}
+```
+
+**Step 2: Generate a migration and edit SQL to backfill**
+
+Run:
+
+```bash
+npx prisma migrate dev --create-only --name add_product_id
+```
+
+Edit `prisma/migrations/<timestamp>_add_product_id/migration.sql` to ensure existing rows are filled and the column becomes NOT NULL + UNIQUE:
+
+```sql
+ALTER TABLE "Product" ADD COLUMN "product_ID" TEXT;
+UPDATE "Product" SET "product_ID" = "id" WHERE "product_ID" IS NULL;
+ALTER TABLE "Product" ALTER COLUMN "product_ID" SET NOT NULL;
+CREATE UNIQUE INDEX "Product_product_ID_key" ON "Product"("product_ID");
+```
+
+**Step 3: Apply migration**
+
+Run:
+
+```bash
+npx prisma migrate dev
+```
+
+Expected: migration applied without errors.
+
+**Step 4: Update TypeScript types**
+
+Edit `types/index.ts`:
+
+```ts
+export interface Product {
+  id: string;
+  productId: string;
+  name: string;
+  description: string | null;
+  price: number;
+  images: string[];
+  category: string;
+  isActive: boolean;
+}
+```
+
+**Step 5: Update product actions to accept/return productId**
+
+Edit `lib/actions.ts`:
+
+```ts
+const productSchema = z.object({
+  productId: z.string().min(1).max(64).optional(),
+  name: z.string().min(1, "Name is required").max(200),
+  description: z.string().max(2000).optional(),
+  price: z.number().int().positive("Price must be positive"),
+  category: z.string().min(1, "Category is required"),
+  images: z.array(z.string().url()).min(1, "At least one image is required"),
+  isActive: z.boolean().default(true),
+});
+
+export async function createProduct(
+  formData: z.infer<typeof productSchema>
+): Promise<ActionResult<{ id: string }>> {
+  const validated = productSchema.parse(formData);
+  const productId = validated.productId ?? crypto.randomUUID();
+  const product = await prisma.product.create({
+    data: {
+      productId,
+      name: validated.name,
+      description: validated.description || null,
+      price: validated.price,
+      category: validated.category,
+      images: validated.images,
+      isActive: validated.isActive,
+    },
+    select: { id: true },
+  });
+  // ...existing revalidate calls
+}
+
+export async function updateProduct(
+  formData: z.infer<typeof updateProductSchema>
+): Promise<ActionResult<{ id: string }>> {
+  const validated = updateProductSchema.parse(formData);
+  const { id, ...data } = validated;
+  const product = await prisma.product.update({
+    where: { id },
+    data: {
+      productId: data.productId,
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      category: data.category,
+      images: data.images,
+      isActive: data.isActive,
+    },
+    select: { id: true },
+  });
+  // ...existing revalidate calls
+}
+```
+
+Also update product queries to select `productId` where needed (admin edit flow uses full product shape):
+
+```ts
+// inside getProducts select
+productId: true,
+```
+
+**Step 6: Add Product ID input to admin form**
+
+Edit `components/admin/product-form.tsx`:
+
+```tsx
+const productFormSchema = z.object({
+  productId: z.string().min(1).max(64).optional(),
+  // ...existing fields
+});
+
+// inside form JSX
+<div className="space-y-2">
+  <Label htmlFor="productId">Mã sản phẩm</Label>
+  <Input
+    id="productId"
+    placeholder="ví dụ: SKU-001"
+    disabled={isPending}
+    {...form.register("productId")}
+  />
+  {form.formState.errors.productId && (
+    <p className="text-sm text-red-500">{form.formState.errors.productId.message}</p>
+  )}
+</div>
+```
+
+**Step 7: Quick schema validation**
+
+Run:
+
+```bash
+npx prisma validate
+```
+
+Expected: `The schema is valid`.
+
+**Step 8: Commit**
+
+```bash
+git add prisma/schema.prisma prisma/migrations types/index.ts lib/actions.ts components/admin/product-form.tsx
+git commit -m "feat: add product_ID column and wire productId through admin"
+```
+
+---
+
+### Task 2: Add Excel import parsing utility + tests
+
+**Files:**
+- Create: `lib/import-products.ts`
+- Test: `__tests__/lib/import-products.test.ts`
+
+**Step 1: Write failing tests for parsing and validation**
+
+`__tests__/lib/import-products.test.ts`:
+
+```ts
+import ExcelJS from "exceljs";
+import { describe, expect, it } from "vitest";
+import { parseProductImportSheet } from "@/lib/import-products";
+
+async function workbookBuffer(rows: Array<Array<string | number | boolean | null>>) {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Products");
+  rows.forEach((row) => sheet.addRow(row));
+  return workbook.xlsx.writeBuffer();
+}
+
+describe("parseProductImportSheet", () => {
+  it("parses valid rows", async () => {
+    const buffer = await workbookBuffer([
+      ["product_ID", "name", "price", "category", "images", "description", "isActive"],
+      ["SKU-001", "Binh gom", 100000, "Decor", "https://a.com/1.jpg, https://a.com/2.jpg", "Mo ta", "true"],
+    ]);
+
+    const result = await parseProductImportSheet(buffer);
+
+    expect(result.errors).toEqual([]);
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0]).toMatchObject({
+      productId: "SKU-001",
+      name: "Binh gom",
+      price: 100000,
+      category: "Decor",
+      images: ["https://a.com/1.jpg", "https://a.com/2.jpg"],
+      description: "Mo ta",
+      isActive: true,
+    });
+  });
+
+  it("reports validation errors with row numbers", async () => {
+    const buffer = await workbookBuffer([
+      ["product_ID", "name", "price", "category", "images"],
+      ["", "", -1, "", "not-a-url"],
+    ]);
+
+    const result = await parseProductImportSheet(buffer);
+
+    expect(result.rows).toHaveLength(0);
+    expect(result.errors[0].row).toBe(2);
+    expect(result.errors[0].messages.length).toBeGreaterThan(0);
+  });
+});
+```
+
+**Step 2: Run the test to confirm failure**
+
+Run:
+
+```bash
+npx vitest __tests__/lib/import-products.test.ts
+```
+
+Expected: FAIL with `parseProductImportSheet is not a function`.
+
+**Step 3: Implement parsing utility**
+
+`lib/import-products.ts`:
+
+```ts
+import ExcelJS from "exceljs";
+import { z } from "zod";
+
+const importRowSchema = z.object({
+  productId: z.string().min(1),
+  name: z.string().min(1),
+  price: z.number().int().positive(),
+  category: z.string().min(1),
+  images: z.array(z.string().url()).min(1),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export type ImportRow = z.infer<typeof importRowSchema>;
+
+export type ImportRowError = {
+  row: number;
+  messages: string[];
+};
+
+const headerMap: Record<string, keyof ImportRow> = {
+  "product_id": "productId",
+  "productid": "productId",
+  "name": "name",
+  "price": "price",
+  "category": "category",
+  "images": "images",
+  "description": "description",
+  "isactive": "isActive",
+};
+
+function normalizeHeader(value: unknown) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function parseImages(value: unknown) {
+  return String(value ?? "")
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseBoolean(value: unknown) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (["true", "1", "yes", "y"].includes(normalized)) return true;
+  if (["false", "0", "no", "n"].includes(normalized)) return false;
+  return true;
+}
+
+export async function parseProductImportSheet(buffer: ArrayBuffer) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+  const sheet = workbook.worksheets[0];
+
+  if (!sheet) {
+    return { rows: [], errors: [{ row: 0, messages: ["Missing worksheet"] }] };
+  }
+
+  const headerRow = sheet.getRow(1);
+  const headers = headerRow.values
+    .slice(1)
+    .map((cell) => headerMap[normalizeHeader(cell)])
+    .filter(Boolean) as Array<keyof ImportRow>;
+
+  const rows: ImportRow[] = [];
+  const errors: ImportRowError[] = [];
+  const seen = new Set<string>();
+
+  sheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return;
+
+    const values = row.values as Array<unknown>;
+    const record: Record<string, unknown> = {};
+
+    headers.forEach((key, index) => {
+      const cellValue = values[index + 1];
+      if (key === "images") record.images = parseImages(cellValue);
+      else if (key === "price") record.price = Number(cellValue);
+      else if (key === "isActive") record.isActive = parseBoolean(cellValue);
+      else record[key] = String(cellValue ?? "").trim();
+    });
+
+    const parsed = importRowSchema.safeParse(record);
+    if (!parsed.success) {
+      errors.push({
+        row: rowNumber,
+        messages: parsed.error.issues.map((issue) => issue.message),
+      });
+      return;
+    }
+
+    if (seen.has(parsed.data.productId)) {
+      errors.push({ row: rowNumber, messages: ["Duplicate product_ID in file"] });
+      return;
+    }
+
+    seen.add(parsed.data.productId);
+    rows.push(parsed.data);
+  });
+
+  return { rows, errors };
+}
+```
+
+**Step 4: Run tests to verify pass**
+
+```bash
+npx vitest __tests__/lib/import-products.test.ts
+```
+
+Expected: PASS.
+
+**Step 5: Commit**
+
+```bash
+git add lib/import-products.ts __tests__/lib/import-products.test.ts
+git commit -m "feat: add Excel import parser with validation"
+```
+
+---
+
+### Task 3: Implement bulk upsert server action
+
+**Files:**
+- Modify: `lib/actions.ts`
+- (Optional) Test: `__tests__/lib/import-actions.test.ts`
+
+**Step 1: Write failing test for missing file (optional)**
+
+`__tests__/lib/import-actions.test.ts`:
+
+```ts
+import { describe, expect, it, vi } from "vitest";
+import { bulkUpsertProducts } from "@/lib/actions";
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: { product: { findMany: vi.fn(), upsert: vi.fn() }, $transaction: vi.fn() },
+}));
+
+describe("bulkUpsertProducts", () => {
+  it("returns an error when file is missing", async () => {
+    const result = await bulkUpsertProducts(new FormData());
+    expect(result.success).toBe(false);
+  });
+});
+```
+
+**Step 2: Run the test to confirm failure**
+
+```bash
+npx vitest __tests__/lib/import-actions.test.ts
+```
+
+Expected: FAIL because `bulkUpsertProducts` does not exist yet.
+
+**Step 3: Implement server action**
+
+Edit `lib/actions.ts`:
+
+```ts
+import { parseProductImportSheet } from "@/lib/import-products";
+
+export async function bulkUpsertProducts(
+  formData: FormData
+): Promise<ActionResult<{ created: number; updated: number; errors: Array<{ row: number; messages: string[] }> }>> {
+  try {
+    const file = formData.get("file");
+    if (!(file instanceof File)) {
+      return { success: false, error: "File is required" };
+    }
+
+    const buffer = await file.arrayBuffer();
+    const { rows, errors } = await parseProductImportSheet(buffer);
+
+    if (rows.length === 0) {
+      return { success: false, error: "No valid rows to import" };
+    }
+
+    const productIds = rows.map((row) => row.productId);
+    const existing = await prisma.product.findMany({
+      where: { productId: { in: productIds } },
+      select: { productId: true },
+    });
+    const existingSet = new Set(existing.map((row) => row.productId));
+
+    await prisma.$transaction(
+      rows.map((row) =>
+        prisma.product.upsert({
+          where: { productId: row.productId },
+          create: {
+            productId: row.productId,
+            name: row.name,
+            description: row.description ?? null,
+            price: row.price,
+            category: row.category,
+            images: row.images,
+            isActive: row.isActive,
+          },
+          update: {
+            name: row.name,
+            description: row.description ?? null,
+            price: row.price,
+            category: row.category,
+            images: row.images,
+            isActive: row.isActive,
+          },
+        })
+      )
+    );
+
+    const created = rows.filter((row) => !existingSet.has(row.productId)).length;
+    const updated = rows.length - created;
+
+    revalidatePath("/admin/products");
+    revalidatePath("/");
+    revalidateTag("categories", "default");
+    revalidateTag("products", "default");
+
+    return { success: true, data: { created, updated, errors } };
+  } catch (error) {
+    console.error("Bulk import failed:", error);
+    return { success: false, error: "Bulk import failed" };
+  }
+}
+```
+
+**Step 4: Re-run tests**
+
+```bash
+npx vitest __tests__/lib/import-actions.test.ts
+```
+
+Expected: PASS.
+
+**Step 5: Commit**
+
+```bash
+git add lib/actions.ts __tests__/lib/import-actions.test.ts
+git commit -m "feat: add bulk upsert products server action"
+```
+
+---
+
+### Task 4: Add admin import UI (sheet + button)
+
+**Files:**
+- Create: `components/admin/product-import-sheet.tsx`
+- Modify: `app/admin/products/page.tsx`
+
+**Step 1: Create the import sheet component**
+
+`components/admin/product-import-sheet.tsx`:
+
+```tsx
+"use client";
+
+import { useCallback, useEffect, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { X } from "lucide-react";
+import { bulkUpsertProducts } from "@/lib/actions";
+import { toast } from "sonner";
+
+export function ProductImportSheet() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [file, setFile] = useState<File | null>(null);
+  const [errors, setErrors] = useState<Array<{ row: number; messages: string[] }>>([]);
+  const [isPending, startTransition] = useTransition();
+
+  const action = searchParams.get("action");
+  const isOpen = action === "import";
+
+  const handleClose = useCallback(() => {
+    router.push("/admin/products");
+  }, [router]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setFile(null);
+      setErrors([]);
+    }
+  }, [isOpen]);
+
+  const handleSubmit = () => {
+    if (!file) {
+      toast.error("Hãy chọn file .xlsx");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    startTransition(async () => {
+      const result = await bulkUpsertProducts(formData);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+
+      setErrors(result.data.errors ?? []);
+      toast.success(`Đã nhập ${result.data.created} mới, cập nhật ${result.data.updated}`);
+      router.refresh();
+    });
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50 bg-black/50 animate-in fade-in-0" onClick={handleClose} />
+      <div className="fixed inset-y-0 right-0 z-50 w-full sm:max-w-xl bg-background border-l shadow-lg animate-in slide-in-from-right duration-300 flex flex-col">
+        <div className="flex items-start justify-between gap-4 p-4 border-b">
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold">Nhập sản phẩm từ Excel</h2>
+            <p className="text-sm text-muted-foreground">Tải file .xlsx theo mẫu cột yêu cầu.</p>
+          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={handleClose}>
+            <X className="h-4 w-4" />
+            <span className="sr-only">Đóng</span>
+          </Button>
+        </div>
+
+        <div className="flex-1 p-4 space-y-4">
+          <Input type="file" accept=".xlsx" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <Button onClick={handleSubmit} disabled={isPending}>
+            {isPending ? "Đang nhập..." : "Bắt đầu nhập"}
+          </Button>
+
+          {errors.length > 0 && (
+            <div className="border rounded-lg p-3">
+              <p className="text-sm font-medium mb-2">Lỗi dữ liệu</p>
+              <ScrollArea className="h-48">
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  {errors.map((error) => (
+                    <li key={`${error.row}-${error.messages.join("-")}`}>
+                      Dòng {error.row}: {error.messages.join(", ")}
+                    </li>
+                  ))}
+                </ul>
+              </ScrollArea>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+```
+
+**Step 2: Add import button and sheet to Products page**
+
+Edit `app/admin/products/page.tsx`:
+
+```tsx
+import { ProductImportSheet } from "@/components/admin/product-import-sheet";
+
+// inside header actions
+<div className="flex items-center gap-2">
+  <Button variant="outline" asChild>
+    <Link href="/admin/products?action=import">Nhập Excel</Link>
+  </Button>
+  <Button asChild className="gap-2">
+    <Link href="/admin/products?action=new">
+      <Plus className="h-4 w-4" />
+      Thêm sản phẩm
+    </Link>
+  </Button>
+</div>
+
+// near the end of page
+<Suspense fallback={null}>
+  <ProductFormSheet products={products} categories={categories} />
+</Suspense>
+<Suspense fallback={null}>
+  <ProductImportSheet />
+</Suspense>
+```
+
+**Step 3: Manual verification**
+
+Run:
+
+```bash
+npm test
+```
+
+Expected: all existing tests pass.
+
+**Step 4: Commit**
+
+```bash
+git add components/admin/product-import-sheet.tsx app/admin/products/page.tsx
+git commit -m "feat: add admin Excel import UI"
+```
+
+---
+
+### Task 5: Document import template for admins
+
+**Files:**
+- Create: `docs/admin-products-import.md`
+
+**Step 1: Write the import template doc**
+
+```md
+# Admin Product Import Template
+
+**Required columns:**
+- `product_ID` (unique, used for upsert)
+- `name`
+- `price` (integer VND)
+- `category`
+- `images` (comma or newline-separated URLs)
+
+**Optional columns:**
+- `description`
+- `isActive` (true/false, 1/0, yes/no)
+```
+
+**Step 2: Commit**
+
+```bash
+git add docs/admin-products-import.md
+git commit -m "docs: add admin product import template"
+```
+
+---
+
+### Final Verification
+
+Run:
+
+```bash
+npm test
+```
+
+Expected: 2 test files passed, 41 tests passed.
