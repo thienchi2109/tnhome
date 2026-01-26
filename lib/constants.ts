@@ -4,6 +4,7 @@ export const STORE_PAGE_SIZE = 24; // For public storefront grid (4 rows on desk
 // Pagination constants (internal)
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
+const MAX_PAGE_SIZE = 100; // Maximum allowed page size to prevent abuse
 const ALLOWED_PAGE_SIZES = [10, 12, 20, 24, 50, 100] as const;
 
 // Pagination types
@@ -29,6 +30,12 @@ export function normalizePaginationParams(
     typeof pageSize === "string"
       ? parseInt(pageSize, 10)
       : (pageSize ?? DEFAULT_PAGE_SIZE);
+  
+  // Enforce maximum page size
+  if (parsedPageSize > MAX_PAGE_SIZE) {
+    parsedPageSize = MAX_PAGE_SIZE;
+  }
+  
   if (
     !ALLOWED_PAGE_SIZES.includes(
       parsedPageSize as (typeof ALLOWED_PAGE_SIZES)[number]
