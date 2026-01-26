@@ -46,11 +46,16 @@ export function ActiveFilterTags({ categoriesWithSlugs }: ActiveFilterTagsProps)
       });
     }
 
-    // Categories (comma-separated slugs)
-    const categoryParam = searchParams.get("category");
-    if (categoryParam) {
-      const slugs = categoryParam.split(",").filter(Boolean);
-      slugs.forEach((slug) => {
+    // Categories - handle both comma-separated and repeated params
+    const allCategoryValues = searchParams.getAll("category");
+    const categorySlugSet = new Set<string>();
+    for (const value of allCategoryValues) {
+      for (const slug of value.split(",")) {
+        if (slug) categorySlugSet.add(slug);
+      }
+    }
+    if (categorySlugSet.size > 0) {
+      categorySlugSet.forEach((slug) => {
         // Display Vietnamese name, but store slug as value
         const displayName = slugToName.get(slug) ?? slug;
         tags.push({
@@ -92,16 +97,20 @@ export function ActiveFilterTags({ categoriesWithSlugs }: ActiveFilterTagsProps)
         if (tag.key === "q") {
           params.delete("q");
         } else if (tag.key.startsWith("category:")) {
-          // Remove single category slug from comma-separated list
-          const categoryParam = params.get("category");
-          if (categoryParam) {
-            const slugs = categoryParam.split(",").filter(Boolean);
-            const updated = slugs.filter((s) => s !== tag.value);
-            if (updated.length > 0) {
-              params.set("category", updated.join(","));
-            } else {
-              params.delete("category");
+          // Remove single category slug - handle both comma-separated and repeated params
+          const allCategoryValues = params.getAll("category");
+          const allSlugs = new Set<string>();
+          for (const value of allCategoryValues) {
+            for (const slug of value.split(",")) {
+              if (slug) allSlugs.add(slug);
             }
+          }
+          allSlugs.delete(tag.value);
+
+          // Clear all category params and set single comma-separated value
+          params.delete("category");
+          if (allSlugs.size > 0) {
+            params.set("category", Array.from(allSlugs).join(","));
           }
         } else if (tag.key === "price") {
           params.delete("minPrice");

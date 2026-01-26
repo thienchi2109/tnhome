@@ -41,7 +41,18 @@ export function FilterCategoryGroup({
   }, [categories, categoriesWithSlugs]);
 
   // Parse URL slugs into selected category names
-  const selectedSlugs = searchParams.get("category")?.split(",").filter(Boolean) || [];
+  // Handle both comma-separated (?category=a,b) and repeated params (?category=a&category=b)
+  const selectedSlugs = useMemo(() => {
+    const allValues = searchParams.getAll("category");
+    const slugs = new Set<string>();
+    for (const value of allValues) {
+      for (const slug of value.split(",")) {
+        if (slug) slugs.add(slug);
+      }
+    }
+    return Array.from(slugs);
+  }, [searchParams]);
+
   const selectedCategories = selectedSlugs
     .map(slug => slugToName.get(slug) ?? slug)
     .filter(Boolean);
