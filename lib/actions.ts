@@ -11,7 +11,13 @@ import { toSlug } from "@/lib/utils";
 
 // Validation schemas
 const productSchema = z.object({
-  externalId: z.string().min(1).max(64).optional(),
+  externalId: z.preprocess((value) => {
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      return trimmed === "" ? undefined : trimmed;
+    }
+    return value;
+  }, z.string().min(1).max(64).optional()),
   name: z.string().min(1, "Name is required").max(200),
   description: z.string().max(2000).optional(),
   price: z.number().int().positive("Price must be positive"),
