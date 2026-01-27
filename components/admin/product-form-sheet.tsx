@@ -9,9 +9,10 @@ import type { Product } from "@/types";
 
 interface ProductFormSheetProps {
   products: Product[];
+  categories?: string[];
 }
 
-export function ProductFormSheet({ products }: ProductFormSheetProps) {
+export function ProductFormSheet({ products, categories = [] }: ProductFormSheetProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -91,7 +92,11 @@ export function ProductFormSheet({ products }: ProductFormSheetProps) {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
-          <ProductForm initialData={productToEdit} onSuccess={handleSuccess} />
+          <ProductForm
+            initialData={productToEdit}
+            onSuccess={handleSuccess}
+            categories={categories}
+          />
         </div>
       </div>
     </>

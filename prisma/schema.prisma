@@ -10,6 +10,7 @@ datasource db {
 
 model Product {
   id          String      @id @default(cuid())
+  externalId  String      @unique @map("external_id")
   name        String
   description String?
   price       Int
@@ -29,35 +30,33 @@ model Product {
 
 model Customer {
   id        String   @id @default(cuid())
-  userId    String?  @unique  // Clerk userId (linked when logged in)
+  userId    String?  @unique
   name      String
   phone     String   @unique
   email     String?
   address   String
-  orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  orders    Order[]
 
   @@index([phone])
   @@index([userId])
 }
 
 model Order {
-  id        String      @id @default(cuid())
-  total     Int
-  status    String      @default("PENDING")
-  userId    String?
-  // Customer relation
-  customerId      String
-  customer        Customer @relation(fields: [customerId], references: [id])
-  // Snapshot fields for historical accuracy
-  shippingName    String
-  shippingPhone   String
-  shippingAddress String
-  notes           String?
-  items           OrderItem[]
+  id              String      @id @default(cuid())
+  total           Int
+  status          String      @default("PENDING")
+  userId          String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  customerId      String
+  notes           String?
+  shippingAddress String
+  shippingName    String
+  shippingPhone   String
+  customer        Customer    @relation(fields: [customerId], references: [id])
+  items           OrderItem[]
 
   @@index([userId])
   @@index([status])
@@ -71,7 +70,6 @@ model OrderItem {
   productId String
   quantity  Int
   price     Int
-
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id])
 

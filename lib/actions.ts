@@ -7,9 +7,17 @@ import { auth } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 import type { PaginationParams } from "@/lib/constants";
 import { unstable_cache } from "next/cache";
+import { toSlug } from "@/lib/utils";
 
 // Validation schemas
 const productSchema = z.object({
+  externalId: z.preprocess((value) => {
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      return trimmed === "" ? undefined : trimmed;
+    }
+    return value;
+  }, z.string().min(1).max(64).optional()),
   name: z.string().min(1, "Name is required").max(200),
   description: z.string().max(2000).optional(),
   price: z.number().int().positive("Price must be positive"),
@@ -58,6 +66,7 @@ type ActionResult<T = unknown> =
 export interface PaginatedProducts {
   products: Array<{
     id: string;
+    externalId: string;
     name: string;
     description: string | null;
     price: number;
@@ -92,9 +101,11 @@ export async function createProduct(
 ): Promise<ActionResult<{ id: string }>> {
   try {
     const validated = productSchema.parse(formData);
+    const externalId = validated.externalId ?? crypto.randomUUID();
 
     const product = await prisma.product.create({
       data: {
+        externalId,
         name: validated.name,
         description: validated.description || null,
         price: validated.price,
@@ -132,6 +143,7 @@ export async function updateProduct(
     const product = await prisma.product.update({
       where: { id },
       data: {
+        externalId: data.externalId,
         name: data.name,
         description: data.description,
         price: data.price,
@@ -224,6 +236,7 @@ export async function getProducts(
       take: pageSize,
       select: {
         id: true,
+        externalId: true,
         name: true,
         description: true,
         price: true,
@@ -334,6 +347,7 @@ export async function getActiveProductsPaginated(
       take: pageSize,
       select: {
         id: true,
+        externalId: true,
         name: true,
         description: true,
         price: true,
@@ -373,6 +387,38 @@ export const getCategories = unstable_cache(
   ["categories"],
   {
     revalidate: 3600, // Cache for 1 hour
+    tags: ["categories"],
+  }
+);
+
+// Get All Categories (for admin - includes categories from inactive products)
+export async function getAllCategories(): Promise<string[]> {
+  const categories = await prisma.product.findMany({
+    select: { category: true },
+    distinct: ["category"],
+    orderBy: { category: "asc" },
+  });
+
+  return categories.map((c) => c.category);
+}
+
+// Get Categories with Slugs (for dynamic navigation)
+export const getCategoriesWithSlugs = unstable_cache(
+  async () => {
+    const names = await prisma.product.findMany({
+      where: { isActive: true },
+      select: { category: true },
+      distinct: ["category"],
+    });
+
+    return names.map((c) => ({
+      name: c.category,
+      slug: toSlug(c.category),
+    }));
+  },
+  ["categories-with-slugs"],
+  {
+    revalidate: 3600,
     tags: ["categories"],
   }
 );
