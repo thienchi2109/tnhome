@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import type { Product } from "@/types";
 
 const productFormSchema = z.object({
+  externalId: z.string().min(1).max(64).optional(),
   name: z.string().min(1, "Tên là bắt buộc").max(200),
   description: z.string().max(2000).optional(),
   price: z.number().int().positive("Giá phải là số dương"),
@@ -40,6 +41,7 @@ export function ProductForm({ initialData, onSuccess, categories = [] }: Product
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
+      externalId: initialData?.externalId || "",
       name: initialData?.name || "",
       description: initialData?.description || "",
       price: initialData?.price || 0,
@@ -86,6 +88,22 @@ export function ProductForm({ initialData, onSuccess, categories = [] }: Product
         {form.formState.errors.images && (
           <p className="text-sm text-red-500">
             {form.formState.errors.images.message}
+          </p>
+        )}
+      </div>
+
+      {/* External ID (Mã hàng) */}
+      <div className="space-y-2">
+        <Label htmlFor="externalId">Mã hàng</Label>
+        <Input
+          id="externalId"
+          placeholder="ví dụ: SKU-001"
+          disabled={isPending}
+          {...form.register("externalId")}
+        />
+        {form.formState.errors.externalId && (
+          <p className="text-sm text-red-500">
+            {form.formState.errors.externalId.message}
           </p>
         )}
       </div>

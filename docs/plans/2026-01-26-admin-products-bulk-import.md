@@ -2,19 +2,19 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add an admin Excel bulk-import flow that upserts products by `product_ID`, and add a required unique `product_ID` column to the Products table.
+**Goal:** Add an admin Excel bulk-import flow that upserts products by `external_id`, and add a required unique `external_id` column to the Products table.
 
-**Architecture:** Introduce a new `productId` field on `Product` mapped to DB column `product_ID`, backfill existing rows, and enforce uniqueness. Parse `.xlsx` files server-side with ExcelJS and validate rows with Zod before upserting via Prisma. Enforce admin authorization, 5MB file size limit, 1000-row limit, and HTTPS-only image URLs. Provide an admin import sheet in the Products page with upload + template download, and show summary + row-level errors.
+**Architecture:** Introduce a new `externalId` field on `Product` mapped to DB column `external_id`, backfill existing rows, and enforce uniqueness. Parse `.xlsx` files server-side with ExcelJS and validate rows with Zod before upserting via Prisma. Enforce admin authorization, 5MB file size limit, 1000-row limit, and HTTPS-only image URLs. Provide an admin import sheet in the Products page with upload + template download, and show summary + row-level errors.
 
 **Tech Stack:** Next.js 15 (app router, server actions), Prisma/Postgres, ExcelJS, Zod, Vitest, shadcn/ui components, Sonner.
 
 ---
 
-### Task 1: Add `product_ID` column + wire through types/actions
+### Task 1: Add `external_id` column + wire through types/actions
 
 **Files:**
 - Modify: `prisma/schema.prisma`
-- Create: `prisma/migrations/<timestamp>_add_product_id/migration.sql`
+- Create: `prisma/migrations/<timestamp>_add_external_id/migration.sql`
 - Modify: `types/index.ts`
 - Modify: `lib/actions.ts`
 - Modify: `components/admin/product-form.tsx`
@@ -24,7 +24,7 @@
 ```prisma
 model Product {
   id          String      @id @default(cuid())
-  productId   String      @unique @map("product_ID")
+  externalId  String      @unique @map("external_id")
   name        String
   description String?
   price       Int
@@ -47,16 +47,16 @@ model Product {
 Run:
 
 ```bash
-npx prisma migrate dev --create-only --name add_product_id
+npx prisma migrate dev --create-only --name add_external_id
 ```
 
-Edit `prisma/migrations/<timestamp>_add_product_id/migration.sql` to ensure existing rows are filled and the column becomes NOT NULL + UNIQUE:
+Edit `prisma/migrations/<timestamp>_add_external_id/migration.sql` to ensure existing rows are filled and the column becomes NOT NULL + UNIQUE:
 
 ```sql
-ALTER TABLE "Product" ADD COLUMN "product_ID" TEXT;
-UPDATE "Product" SET "product_ID" = "id" WHERE "product_ID" IS NULL;
-ALTER TABLE "Product" ALTER COLUMN "product_ID" SET NOT NULL;
-CREATE UNIQUE INDEX "Product_product_ID_key" ON "Product"("product_ID");
+ALTER TABLE "Product" ADD COLUMN "external_id" TEXT;
+UPDATE "Product" SET "external_id" = "id" WHERE "external_id" IS NULL;
+ALTER TABLE "Product" ALTER COLUMN "external_id" SET NOT NULL;
+CREATE UNIQUE INDEX "Product_external_id_key" ON "Product"("external_id");
 ```
 
 **Step 3: Apply migration**
@@ -76,7 +76,7 @@ Edit `types/index.ts`:
 ```ts
 export interface Product {
   id: string;
-  productId: string;
+  externalId: string;
   name: string;
   description: string | null;
   price: number;
@@ -86,13 +86,13 @@ export interface Product {
 }
 ```
 
-**Step 5: Update product actions to accept/return productId**
+**Step 5: Update product actions to accept/return externalId**
 
 Edit `lib/actions.ts`:
 
 ```ts
 const productSchema = z.object({
-  productId: z.string().min(1).max(64).optional(),
+  externalId: z.string().min(1).max(64).optional(),
   name: z.string().min(1, "Name is required").max(200),
   description: z.string().max(2000).optional(),
   price: z.number().int().positive("Price must be positive"),
@@ -105,10 +105,10 @@ export async function createProduct(
   formData: z.infer<typeof productSchema>
 ): Promise<ActionResult<{ id: string }>> {
   const validated = productSchema.parse(formData);
-  const productId = validated.productId ?? crypto.randomUUID();
+  const externalId = validated.externalId ?? crypto.randomUUID();
   const product = await prisma.product.create({
     data: {
-      productId,
+      externalId,
       name: validated.name,
       description: validated.description || null,
       price: validated.price,
@@ -129,7 +129,7 @@ export async function updateProduct(
   const product = await prisma.product.update({
     where: { id },
     data: {
-      productId: data.productId,
+      externalId: data.externalId,
       name: data.name,
       description: data.description,
       price: data.price,
@@ -143,34 +143,34 @@ export async function updateProduct(
 }
 ```
 
-Also update product queries to select `productId` where needed (admin edit flow uses full product shape):
+Also update product queries to select `externalId` where needed (admin edit flow uses full product shape):
 
 ```ts
 // inside getProducts select
-productId: true,
+externalId: true,
 ```
 
-**Step 6: Add Product ID input to admin form**
+**Step 6: Add External ID input to admin form**
 
 Edit `components/admin/product-form.tsx`:
 
 ```tsx
 const productFormSchema = z.object({
-  productId: z.string().min(1).max(64).optional(),
+  externalId: z.string().min(1).max(64).optional(),
   // ...existing fields
 });
 
 // inside form JSX
 <div className="space-y-2">
-  <Label htmlFor="productId">Mã sản phẩm</Label>
+  <Label htmlFor="externalId">Mã hàng</Label>
   <Input
-    id="productId"
+    id="externalId"
     placeholder="ví dụ: SKU-001"
     disabled={isPending}
-    {...form.register("productId")}
+    {...form.register("externalId")}
   />
-  {form.formState.errors.productId && (
-    <p className="text-sm text-red-500">{form.formState.errors.productId.message}</p>
+  {form.formState.errors.externalId && (
+    <p className="text-sm text-red-500">{form.formState.errors.externalId.message}</p>
   )}
 </div>
 ```
@@ -189,7 +189,7 @@ Expected: `The schema is valid`.
 
 ```bash
 git add prisma/schema.prisma prisma/migrations types/index.ts lib/actions.ts components/admin/product-form.tsx
-git commit -m "feat: add product_ID column and wire productId through admin"
+git commit -m "feat: add external_id column and wire externalId through admin"
 ```
 
 ---
@@ -225,7 +225,7 @@ async function emptyWorkbookBuffer() {
 describe("parseProductImportSheet", () => {
   it("parses valid rows", async () => {
     const buffer = await workbookBuffer([
-      ["product_ID", "name", "price", "category", "images", "description", "isActive"],
+      ["external_id", "name", "price", "category", "images", "description", "isActive"],
       ["SKU-001", "Binh gom", 100000, "Decor", "https://a.com/1.jpg, https://a.com/2.jpg", "Mo ta", "true"],
     ]);
 
@@ -234,7 +234,7 @@ describe("parseProductImportSheet", () => {
     expect(result.errors).toEqual([]);
     expect(result.rows).toHaveLength(1);
     expect(result.rows[0]).toMatchObject({
-      productId: "SKU-001",
+      externalId: "SKU-001",
       name: "Binh gom",
       price: 100000,
       category: "Decor",
@@ -246,19 +246,19 @@ describe("parseProductImportSheet", () => {
 
   it("accepts case-insensitive headers", async () => {
     const buffer = await workbookBuffer([
-      ["PRODUCT_ID", "NAME", "PRICE", "CATEGORY", "IMAGES"],
+      ["EXTERNAL_ID", "NAME", "PRICE", "CATEGORY", "IMAGES"],
       ["SKU-002", "Binh", 120000, "Decor", "https://a.com/1.jpg"],
     ]);
 
     const result = await parseProductImportSheet(buffer);
 
     expect(result.errors).toEqual([]);
-    expect(result.rows[0].productId).toBe("SKU-002");
+    expect(result.rows[0].externalId).toBe("SKU-002");
   });
 
-  it("reports duplicate product_ID in file", async () => {
+  it("reports duplicate external_id in file", async () => {
     const buffer = await workbookBuffer([
-      ["product_ID", "name", "price", "category", "images"],
+      ["external_id", "name", "price", "category", "images"],
       ["SKU-003", "A", 1000, "Decor", "https://a.com/1.jpg"],
       ["SKU-003", "B", 2000, "Decor", "https://a.com/2.jpg"],
     ]);
@@ -297,7 +297,7 @@ describe("parseProductImportSheet", () => {
     ]);
 
     const buffer = await workbookBuffer([
-      ["product_ID", "name", "price", "category", "images"],
+      ["external_id", "name", "price", "category", "images"],
       ...rows,
     ]);
 
@@ -309,7 +309,7 @@ describe("parseProductImportSheet", () => {
 
   it("reports validation errors with row numbers", async () => {
     const buffer = await workbookBuffer([
-      ["product_ID", "name", "price", "category", "images"],
+      ["external_id", "name", "price", "category", "images"],
       ["", "", -1, "", "not-a-url"],
     ]);
 
@@ -343,7 +343,7 @@ import { z } from "zod";
 export const MAX_IMPORT_ROWS = 1000;
 
 const importRowSchema = z.object({
-  productId: z.string().min(1),
+  externalId: z.string().min(1),
   name: z.string().min(1),
   price: z.number().int().positive(),
   category: z.string().min(1),
@@ -367,8 +367,8 @@ export type ImportRowError = {
 };
 
 const headerMap: Record<string, keyof ImportRow> = {
-  "product_id": "productId",
-  "productid": "productId",
+  "external_id": "externalId",
+  "externalid": "externalId",
   "name": "name",
   "price": "price",
   "category": "category",
@@ -378,7 +378,7 @@ const headerMap: Record<string, keyof ImportRow> = {
 };
 
 const requiredHeaders: Array<keyof ImportRow> = [
-  "productId",
+  "externalId",
   "name",
   "price",
   "category",
@@ -485,12 +485,12 @@ export async function parseProductImportSheet(buffer: ArrayBuffer) {
       return;
     }
 
-    if (seen.has(parsed.data.productId)) {
-      errors.push({ row: rowNumber, messages: ["Duplicate product_ID in file"] });
+    if (seen.has(parsed.data.externalId)) {
+      errors.push({ row: rowNumber, messages: ["Duplicate external_id in file"] });
       return;
     }
 
-    seen.add(parsed.data.productId);
+    seen.add(parsed.data.externalId);
     rows.push(parsed.data);
   });
 
@@ -640,19 +640,19 @@ export async function bulkUpsertProducts(
       };
     }
 
-    const productIds = rows.map((row) => row.productId);
+    const externalIds = rows.map((row) => row.externalId);
     const existing = await prisma.product.findMany({
-      where: { productId: { in: productIds } },
-      select: { productId: true },
+      where: { externalId: { in: externalIds } },
+      select: { externalId: true },
     });
-    const existingSet = new Set(existing.map((row) => row.productId));
+    const existingSet = new Set(existing.map((row) => row.externalId));
 
     await prisma.$transaction(
       rows.map((row) =>
         prisma.product.upsert({
-          where: { productId: row.productId },
+          where: { externalId: row.externalId },
           create: {
-            productId: row.productId,
+            externalId: row.externalId,
             name: row.name,
             description: row.description ?? null,
             price: row.price,
@@ -672,7 +672,7 @@ export async function bulkUpsertProducts(
       )
     );
 
-    const created = rows.filter((row) => !existingSet.has(row.productId)).length;
+    const created = rows.filter((row) => !existingSet.has(row.externalId)).length;
     const updated = rows.length - created;
 
     revalidatePath("/admin/products");
@@ -730,7 +730,7 @@ describe("createProductImportTemplate", () => {
 
     const headers = sheet.getRow(1).values.slice(1);
     expect(headers).toEqual([
-      "product_ID",
+      "external_id",
       "name",
       "price",
       "category",
@@ -758,7 +758,7 @@ Expected: FAIL because `createProductImportTemplate` does not exist yet.
 import ExcelJS from "exceljs";
 
 const TEMPLATE_HEADERS = [
-  "product_ID",
+  "external_id",
   "name",
   "price",
   "category",
@@ -1011,7 +1011,7 @@ git commit -m "feat: add admin Excel import UI"
 # Admin Product Import Template
 
 **Required columns:**
-- `product_ID` (unique, used for upsert)
+- `external_id` (unique, used for upsert - displayed as "Mã hàng" in UI)
 - `name`
 - `price` (integer VND)
 - `category`

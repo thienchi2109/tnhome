@@ -11,6 +11,7 @@ import { toSlug } from "@/lib/utils";
 
 // Validation schemas
 const productSchema = z.object({
+  externalId: z.string().min(1).max(64).optional(),
   name: z.string().min(1, "Name is required").max(200),
   description: z.string().max(2000).optional(),
   price: z.number().int().positive("Price must be positive"),
@@ -59,6 +60,7 @@ type ActionResult<T = unknown> =
 export interface PaginatedProducts {
   products: Array<{
     id: string;
+    externalId: string;
     name: string;
     description: string | null;
     price: number;
@@ -93,9 +95,11 @@ export async function createProduct(
 ): Promise<ActionResult<{ id: string }>> {
   try {
     const validated = productSchema.parse(formData);
+    const externalId = validated.externalId ?? crypto.randomUUID();
 
     const product = await prisma.product.create({
       data: {
+        externalId,
         name: validated.name,
         description: validated.description || null,
         price: validated.price,
@@ -133,6 +137,7 @@ export async function updateProduct(
     const product = await prisma.product.update({
       where: { id },
       data: {
+        externalId: data.externalId,
         name: data.name,
         description: data.description,
         price: data.price,
@@ -225,6 +230,7 @@ export async function getProducts(
       take: pageSize,
       select: {
         id: true,
+        externalId: true,
         name: true,
         description: true,
         price: true,
@@ -335,6 +341,7 @@ export async function getActiveProductsPaginated(
       take: pageSize,
       select: {
         id: true,
+        externalId: true,
         name: true,
         description: true,
         price: true,
