@@ -3,11 +3,21 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 import type { PaginationParams } from "@/lib/constants";
 import { unstable_cache } from "next/cache";
 import { toSlug } from "@/lib/utils";
+import { parseProductImportSheet } from "@/lib/import-products";
+
+// Admin email configuration
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
+  .split(",")
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean);
+
+// Import limits
+const MAX_IMPORT_BYTES = 5 * 1024 * 1024; // 5MB
 
 // Validation schemas
 const productSchema = z.object({
@@ -651,4 +661,102 @@ export async function getCustomerByAuth() {
   });
 
   return customer;
+}
+
+// Bulk Upsert Products from Excel File
+export async function bulkUpsertProducts(
+  formData: FormData
+): Promise<ActionResult<{ created: number; updated: number; errors: Array<{ row: number; messages: string[] }> }>> {
+  try {
+    // 1. Check authentication
+    const { userId } = await auth();
+    if (!userId) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    // 2. Verify admin authorization
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+    const userEmail = user.emailAddresses[0]?.emailAddress?.toLowerCase() || "";
+    if (!ADMIN_EMAILS.includes(userEmail)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    // 3. Validate file exists and is a File instance
+    const file = formData.get("file");
+    if (!(file instanceof File)) {
+      return { success: false, error: "File is required" };
+    }
+
+    // 4. Check file size
+    if (file.size > MAX_IMPORT_BYTES) {
+      return { success: false, error: "File too large (max 5MB)" };
+    }
+
+    // 5. Check file extension
+    if (!file.name.toLowerCase().endsWith(".xlsx")) {
+      return { success: false, error: "Only .xlsx files are supported" };
+    }
+
+    // 6. Parse the Excel file
+    const buffer = await file.arrayBuffer();
+    const { rows, errors } = await parseProductImportSheet(buffer);
+
+    // 7. If no valid rows, return first error message
+    if (rows.length === 0) {
+      return {
+        success: false,
+        error: errors[0]?.messages[0] || "No valid rows to import",
+      };
+    }
+
+    // 8. Query existing products by externalId to determine creates vs updates
+    const externalIds = rows.map((row) => row.externalId);
+    const existing = await prisma.product.findMany({
+      where: { externalId: { in: externalIds } },
+      select: { externalId: true },
+    });
+    const existingSet = new Set(existing.map((row) => row.externalId));
+
+    // 9. Execute upserts in a transaction
+    await prisma.$transaction(
+      rows.map((row) =>
+        prisma.product.upsert({
+          where: { externalId: row.externalId },
+          create: {
+            externalId: row.externalId,
+            name: row.name,
+            description: row.description ?? null,
+            price: row.price,
+            category: row.category,
+            images: row.images,
+            isActive: row.isActive,
+          },
+          update: {
+            name: row.name,
+            description: row.description ?? null,
+            price: row.price,
+            category: row.category,
+            images: row.images,
+            isActive: row.isActive,
+          },
+        })
+      )
+    );
+
+    // 10. Calculate created vs updated counts
+    const created = rows.filter((row) => !existingSet.has(row.externalId)).length;
+    const updated = rows.length - created;
+
+    // 11. Revalidate paths and tags
+    revalidatePath("/admin/products");
+    revalidatePath("/");
+    revalidateTag("categories", "default");
+    revalidateTag("products", "default");
+
+    return { success: true, data: { created, updated, errors } };
+  } catch (error) {
+    console.error("Bulk import failed:", error);
+    return { success: false, error: "Bulk import failed" };
+  }
 }

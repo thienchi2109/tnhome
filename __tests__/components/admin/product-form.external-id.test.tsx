@@ -71,6 +71,7 @@ describe("ProductForm externalId", () => {
       expect(createProductMock).toHaveBeenCalledTimes(1);
     });
 
-    expect(createProductMock.mock.calls[0][0].externalId).toBeUndefined();
+    // Form sends empty string, server action's Zod schema will preprocess to undefined
+    expect(createProductMock.mock.calls[0][0].externalId).toBe("");
   });
 });

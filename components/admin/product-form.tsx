@@ -17,13 +17,7 @@ import { toast } from "sonner";
 import type { Product } from "@/types";
 
 const productFormSchema = z.object({
-  externalId: z.preprocess((value) => {
-    if (typeof value === "string") {
-      const trimmed = value.trim();
-      return trimmed === "" ? undefined : trimmed;
-    }
-    return value;
-  }, z.string().min(1).max(64).optional()),
+  externalId: z.string().max(64).optional(),
   name: z.string().min(1, "Tên là bắt buộc").max(200),
   description: z.string().max(2000).optional(),
   price: z.number().int().positive("Giá phải là số dương"),
