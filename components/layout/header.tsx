@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore, useState, useEffect } from "react";
+import { useSyncExternalStore, useState } from "react";
 import Link from "next/link";
 import { ShoppingBag, Search, Menu, User, Settings, ChevronDown, LogIn, UserPlus } from "lucide-react";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
@@ -24,11 +24,10 @@ interface HeaderProps {
 export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
   const { openCart } = useCartStore();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // SSR-safe mounted check without useEffect + setState
+  const emptySubscribe = () => () => {};
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   // Use useSyncExternalStore for SSR-safe cart count
   const itemCount = useSyncExternalStore(

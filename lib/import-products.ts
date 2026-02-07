@@ -94,11 +94,11 @@ export async function parseProductImportSheet(buffer: ArrayBuffer): Promise<{
   }
 
   const headers = headerCells
-    .map((cell: unknown) => headerMap[normalizeHeader(cell)])
-    .filter(Boolean) as Array<keyof ImportRow>;
+    .map((cell: unknown) => headerMap[normalizeHeader(cell)] ?? null);
 
+  const presentHeaders = headers.filter(Boolean) as Array<keyof ImportRow>;
   const missingHeaders = requiredHeaders.filter(
-    (header) => !headers.includes(header)
+    (header) => !presentHeaders.includes(header)
   );
   if (missingHeaders.length > 0) {
     return {
@@ -136,6 +136,7 @@ export async function parseProductImportSheet(buffer: ArrayBuffer): Promise<{
     const record: Record<string, unknown> = {};
 
     headers.forEach((key, index) => {
+      if (!key) return;
       const cellValue = values[index + 1];
       if (key === "images") record.images = parseImages(cellValue);
       else if (key === "price") record.price = Number(cellValue);

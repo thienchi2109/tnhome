@@ -677,7 +677,10 @@ export async function bulkUpsertProducts(
     // 2. Verify admin authorization
     const client = await clerkClient();
     const user = await client.users.getUser(userId);
-    const userEmail = user.emailAddresses[0]?.emailAddress?.toLowerCase() || "";
+    const userEmail =
+      user.emailAddresses
+        .find((e) => e.id === user.primaryEmailAddressId)
+        ?.emailAddress?.toLowerCase() || "";
     if (!ADMIN_EMAILS.includes(userEmail)) {
       return { success: false, error: "Unauthorized" };
     }
