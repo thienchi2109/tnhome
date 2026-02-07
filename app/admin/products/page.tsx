@@ -3,13 +3,14 @@ import { AdminHeader } from "@/components/admin/admin-header";
 import { getProducts, getAllCategories } from "@/lib/actions";
 import { normalizePaginationParams } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
-import { Plus } from "lucide-react";
+import { Plus, Upload, Download } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductActions } from "@/components/admin/product-actions";
 import { ProductFormSheet } from "@/components/admin/product-form-sheet";
+import { ProductImportSheet } from "@/components/admin/product-import-sheet";
 import { ProductsPagination } from "@/components/admin/products-pagination";
 
 export const dynamic = "force-dynamic";
@@ -68,12 +69,26 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               )}
             </p>
           </div>
-          <Button asChild className="gap-2">
-            <Link href="/admin/products?action=new">
-              <Plus className="h-4 w-4" />
-              Thêm sản phẩm
-            </Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <a href="/api/admin/products/template" download>
+                <Download className="mr-1.5 h-4 w-4" />
+                Tải mẫu
+              </a>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/admin/products?action=import">
+                <Upload className="mr-1.5 h-4 w-4" />
+                Nhập Excel
+              </Link>
+            </Button>
+            <Button asChild className="gap-2">
+              <Link href="/admin/products?action=new">
+                <Plus className="h-4 w-4" />
+                Thêm sản phẩm
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Products Grid/Table */}
@@ -209,6 +224,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
       <Suspense fallback={null}>
         <ProductFormSheet products={products} categories={categories} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <ProductImportSheet />
       </Suspense>
     </div>
   );

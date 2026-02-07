@@ -29,3 +29,10 @@ export function toSlug(text: string): string {
     .replace(/[^a-z0-9]+/g, "-") // Replace non-alphanumeric with hyphens
     .replace(/^-|-$/g, ""); // Trim leading/trailing hyphens
 }
+
+export function formatFileSize(bytes: number): string {
+  if (bytes >= 1024 * 1024) {
+    return (bytes / 1024 / 1024).toFixed(1) + " MB";
+  }
+  return (bytes / 1024).toFixed(0) + " KB";
+}
