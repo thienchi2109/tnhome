@@ -129,16 +129,16 @@ export function ProductImportSheet() {
         if (res.success) {
           setResult(res.data);
           toast.success(
-            `\u0110\u00e3 nh\u1eadp ${res.data.created} m\u1edbi, c\u1eadp nh\u1eadt ${res.data.updated}`
+            `Đã nhập ${res.data.created} mới, cập nhật ${res.data.updated}`
           );
           router.refresh();
         } else {
-          setError(res.error ?? "L\u1ed7i kh\u00f4ng x\u00e1c \u0111\u1ecbnh");
-          toast.error(res.error ?? "L\u1ed7i kh\u00f4ng x\u00e1c \u0111\u1ecbnh");
+          setError(res.error ?? "Lỗi không xác định");
+          toast.error(res.error ?? "Lỗi không xác định");
         }
       } catch {
-        setError("L\u1ed7i k\u1ebft n\u1ed1i. Vui l\u00f2ng th\u1eed l\u1ea1i.");
-        toast.error("L\u1ed7i k\u1ebft n\u1ed1i");
+        setError("Lỗi kết nối. Vui lòng thử lại.");
+        toast.error("Lỗi kết nối");
       }
     });
   }
@@ -171,9 +171,9 @@ export function ProductImportSheet() {
         {/* Header */}
         <div className="flex items-start justify-between gap-4 p-4 border-b">
           <div className="flex-1">
-            <h2 className="text-lg font-semibold">Nh\u1eadp s\u1ea3n ph\u1ea9m</h2>
+            <h2 className="text-lg font-semibold">Nhập sản phẩm</h2>
             <p className="text-sm text-muted-foreground">
-              Nh\u1eadp h\u00e0ng lo\u1ea1t s\u1ea3n ph\u1ea9m t\u1eeb file Excel
+              Nhập hàng loạt sản phẩm từ file Excel
             </p>
           </div>
           <Button
@@ -206,15 +206,15 @@ export function ProductImportSheet() {
             >
               <Upload className="mx-auto h-10 w-10 text-muted-foreground" />
               <p className="mt-4 text-sm font-medium">
-                K\u00e9o th\u1ea3 file Excel v\u00e0o \u0111\u00e2y
+                Kéo thả file Excel vào đây
               </p>
-              <p className="mt-2 text-sm text-muted-foreground">ho\u1eb7c</p>
+              <p className="mt-2 text-sm text-muted-foreground">hoặc</p>
               <Button
                 variant="outline"
                 className="mt-3"
                 onClick={() => fileInputRef.current?.click()}
               >
-                Ch\u1ecdn file
+                Chọn file
               </Button>
               <input
                 ref={fileInputRef}
@@ -224,7 +224,7 @@ export function ProductImportSheet() {
                 onChange={handleFileChange}
               />
               <p className="mt-4 text-xs text-muted-foreground">
-                Ch\u1ec9 nh\u1eadn file .xlsx (t\u1ed1i \u0111a 5MB, 1.000 d\u00f2ng)
+                Chỉ nhận file .xlsx (tối đa 5MB, 1.000 dòng)
               </p>
             </div>
           )}
@@ -246,7 +246,7 @@ export function ProductImportSheet() {
                   className="h-8 w-8 shrink-0"
                   onClick={() => setFile(null)}
                   disabled={isPending}
-                  aria-label="X\u00f3a file"
+                  aria-label="Xóa file"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -260,10 +260,10 @@ export function ProductImportSheet() {
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    \u0110ang nh\u1eadp...
+                    Đang nhập...
                   </>
                 ) : (
-                  "B\u1eaft \u0111\u1ea7u nh\u1eadp"
+                  "Bắt đầu nhập"
                 )}
               </Button>
             </div>
@@ -279,31 +279,31 @@ export function ProductImportSheet() {
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
                   <p className="text-sm font-medium text-green-800">
-                    Nh\u1eadp th\u00e0nh c\u00f4ng
+                    Nhập thành công
                   </p>
                 </div>
                 <div className="mt-2 text-sm text-green-700 space-y-1">
-                  <p>T\u1ea1o m\u1edbi: {result.created}</p>
-                  <p>C\u1eadp nh\u1eadt: {result.updated}</p>
+                  <p>Tạo mới: {result.created}</p>
+                  <p>Cập nhật: {result.updated}</p>
                 </div>
               </div>
 
               {result.errors.length > 0 && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
                   <p className="text-sm font-medium text-amber-800 mb-2">
-                    C\u1ea3nh b\u00e1o ({result.errors.length} l\u1ed7i)
+                    Cảnh báo ({result.errors.length} lỗi)
                   </p>
                   <ScrollArea className="h-40">
                     <ul className="space-y-1 text-sm text-amber-700">
                       {result.errors.slice(0, MAX_DISPLAYED_ERRORS).map((err) => (
                         <li key={err.row}>
-                          D\u00f2ng {err.row}: {err.messages.join(", ")}
+                          Dòng {err.row}: {err.messages.join(", ")}
                         </li>
                       ))}
                       {result.errors.length > MAX_DISPLAYED_ERRORS && (
                         <li className="text-amber-600 font-medium">
-                          ...v\u00e0 {result.errors.length - MAX_DISPLAYED_ERRORS} l\u1ed7i
-                          kh\u00e1c
+                          ...và {result.errors.length - MAX_DISPLAYED_ERRORS} lỗi
+                          khác
                         </li>
                       )}
                     </ul>
@@ -312,7 +312,7 @@ export function ProductImportSheet() {
               )}
 
               <Button variant="outline" className="w-full" onClick={handleClose}>
-                \u0110\u00f3ng
+                Đóng
               </Button>
             </div>
           )}
@@ -331,7 +331,7 @@ export function ProductImportSheet() {
               </div>
 
               <Button variant="outline" className="w-full" onClick={handleRetry}>
-                Th\u1eed l\u1ea1i
+                Thử lại
               </Button>
             </div>
           )}
@@ -345,7 +345,7 @@ export function ProductImportSheet() {
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <Download className="h-4 w-4" />
-            T\u1ea3i m\u1eabu Excel
+            Tải mẫu Excel
           </a>
         </div>
       </div>

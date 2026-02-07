@@ -100,39 +100,32 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
 
                     <div className="border-t pt-6">
                       <h3 className="text-sm font-medium text-muted-foreground px-2 pb-2">Tài khoản</h3>
-                      {mounted ? (
-                        <>
-                          <SignedOut>
-                            <div className="grid gap-2 px-2">
-                              <Button asChild variant="outline" className="justify-start gap-2 w-full">
-                                <Link href="/sign-in">
-                                  <LogIn className="h-4 w-4" />
-                                  Đăng nhập
-                                </Link>
-                              </Button>
-                              <Button asChild className="justify-start gap-2 w-full">
-                                <Link href="/sign-up">
-                                  <UserPlus className="h-4 w-4" />
-                                  Đăng ký
-                                </Link>
-                              </Button>
-                            </div>
-                          </SignedOut>
-                          <SignedIn>
-                            <div className="flex flex-col gap-2 px-2">
-                              <Link href="/admin" className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors">
-                                <Settings className="h-4 w-4" />
-                                Quản trị viên
+                      <div className={mounted ? undefined : "invisible"}>
+                        <SignedOut>
+                          <div className="grid gap-2 px-2">
+                            <Button asChild variant="outline" className="justify-start gap-2 w-full">
+                              <Link href="/sign-in">
+                                <LogIn className="h-4 w-4" />
+                                Đăng nhập
                               </Link>
-                            </div>
-                          </SignedIn>
-                        </>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <div className="h-5 w-5" />
-                          <span className="text-sm font-medium opacity-0">Đăng nhập</span>
-                        </div>
-                      )}
+                            </Button>
+                            <Button asChild className="justify-start gap-2 w-full">
+                              <Link href="/sign-up">
+                                <UserPlus className="h-4 w-4" />
+                                Đăng ký
+                              </Link>
+                            </Button>
+                          </div>
+                        </SignedOut>
+                        <SignedIn>
+                          <div className="flex flex-col gap-2 px-2">
+                            <Link href="/admin" className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors">
+                              <Settings className="h-4 w-4" />
+                              Quản trị viên
+                            </Link>
+                          </div>
+                        </SignedIn>
+                      </div>
                     </div>
                   </div>
                 </SheetContent>
@@ -178,34 +171,27 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
             {/* Actions */}
             <div className="flex items-center gap-1 md:gap-4 shrink-0">
               <div className="hidden md:flex items-center gap-2 border-r border-border pr-4 mr-1">
-                {mounted ? (
-                  <>
-                    <SignedOut>
-                      <Link href="/sign-in" className="flex items-center gap-2 hover:text-primary transition-colors text-sm font-medium">
-                        <User className="h-5 w-5" />
-                        <span>Đăng nhập</span>
-                      </Link>
-                      <span className="text-muted-foreground">/</span>
-                      <Link href="/sign-up" className="hover:text-primary transition-colors text-sm font-medium">
-                        Đăng ký
-                      </Link>
-                    </SignedOut>
+                <div className={mounted ? "flex items-center gap-2" : "invisible flex items-center gap-2"}>
+                  <SignedOut>
+                    <Link href="/sign-in" className="flex items-center gap-2 hover:text-primary transition-colors text-sm font-medium">
+                      <User className="h-5 w-5" />
+                      <span>Đăng nhập</span>
+                    </Link>
+                    <span className="text-muted-foreground">/</span>
+                    <Link href="/sign-up" className="hover:text-primary transition-colors text-sm font-medium">
+                      Đăng ký
+                    </Link>
+                  </SignedOut>
 
-                    <SignedIn>
-                      <Link href="/admin" className="flex items-center gap-2 hover:text-primary transition-colors text-sm font-medium" title="Quản trị viên">
-                        <Settings className="h-5 w-5" />
-                      </Link>
-                      <div className="pl-2">
-                        <UserButton afterSignOutUrl="/" />
-                      </div>
-                    </SignedIn>
-                  </>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <div className="h-5 w-5" />
-                    <span className="text-sm font-medium opacity-0">Đăng nhập</span>
-                  </div>
-                )}
+                  <SignedIn>
+                    <Link href="/admin" className="flex items-center gap-2 hover:text-primary transition-colors text-sm font-medium" title="Quản trị viên">
+                      <Settings className="h-5 w-5" />
+                    </Link>
+                    <div className="pl-2">
+                      <UserButton afterSignOutUrl="/" />
+                    </div>
+                  </SignedIn>
+                </div>
               </div>
 
               {/* Cart */}
