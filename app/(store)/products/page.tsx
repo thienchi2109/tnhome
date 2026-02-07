@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { ProductGrid } from "@/components/product/product-grid";
-import { StorePagination } from "@/components/store/store-pagination";
+import { PaginationNav } from "@/components/ui/pagination-nav";
 import { SectionHeader } from "@/components/store/section-header";
 import { ProductFilters } from "@/components/store/product-filters";
 import { MobileFilterSheet } from "@/components/store/mobile-filter-sheet";
@@ -188,13 +188,12 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           </div>
 
           {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <StorePagination
-              currentPage={pagination.page}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-            />
-          )}
+          <PaginationNav
+            currentPage={pagination.page}
+            totalPages={pagination.totalPages}
+            variant="store"
+            totalItems={pagination.totalItems}
+          />
         </div>
       </div>
 

@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { ProductActions } from "@/components/admin/product-actions";
 import { ProductFormSheet } from "@/components/admin/product-form-sheet";
 import { ProductImportSheet } from "@/components/admin/product-import-sheet";
-import { ProductsPagination } from "@/components/admin/products-pagination";
+import { PaginationNav } from "@/components/ui/pagination-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -214,10 +214,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
         {/* Pagination Controls */}
         {pagination.totalItems > 0 && (
-          <ProductsPagination
+          <PaginationNav
             currentPage={pagination.page}
-            pageSize={pagination.pageSize}
             totalPages={pagination.totalPages}
+            variant="admin"
+            pageSize={pagination.pageSize}
           />
         )}
       </main>
