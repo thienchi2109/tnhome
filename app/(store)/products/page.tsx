@@ -8,7 +8,7 @@ import { ActiveFilterTags } from "@/components/store/active-filter-tags";
 import { FilterResultsAnnouncer } from "@/components/store/filter-results-announcer";
 import {
   getActiveProductsPaginated,
-  getCategories,
+  getCategoriesWithSlugs,
   getPriceRange,
 } from "@/lib/actions";
 import {
@@ -34,14 +34,23 @@ export async function generateMetadata({ searchParams }: ProductsPageProps) {
   const filters = parseFilterParams(params);
   const page = filters.page;
 
+  // Fetch categories to convert slugs to names for display
+  const categoriesWithSlugs = await getCategoriesWithSlugs();
+  const slugToName = new Map(categoriesWithSlugs.map(c => [c.slug, c.name]));
+
+  // Convert slugs to names for display
+  const categoryNames = filters.category
+    ?.map(slug => slugToName.get(slug) ?? slug)
+    ?? [];
+
   // Build title based on active filters
   let title = "Sản phẩm";
   if (filters.q) {
     title = `Tìm kiếm: ${filters.q}`;
-  } else if (filters.category && filters.category.length === 1) {
-    title = filters.category[0];
-  } else if (filters.category && filters.category.length > 1) {
-    title = `${filters.category.length} danh mục`;
+  } else if (categoryNames.length === 1) {
+    title = categoryNames[0];
+  } else if (categoryNames.length > 1) {
+    title = `${categoryNames.length} danh mục`;
   }
 
   if (page > 1) {
@@ -53,8 +62,8 @@ export async function generateMetadata({ searchParams }: ProductsPageProps) {
   let description = "Khám phá toàn bộ bộ sưu tập nội thất hiện đại của TN Home.";
   if (filters.q) {
     description = `Kết quả tìm kiếm cho "${filters.q}" tại TN Home.`;
-  } else if (filters.category && filters.category.length > 0) {
-    description = `Khám phá bộ sưu tập ${filters.category.join(", ").toLowerCase()} của TN Home.`;
+  } else if (categoryNames.length > 0) {
+    description = `Khám phá bộ sưu tập ${categoryNames.join(", ").toLowerCase()} của TN Home.`;
   }
 
   return { title, description };
@@ -66,38 +75,63 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   // Parse and validate filter params with Zod schema
   const filters = parseFilterParams(params);
 
-  // Parallel fetch: products, categories, and price range
-  const [{ products, pagination }, categories, priceRange] = await Promise.all([
-    getActiveProductsPaginated(
-      { page: filters.page, pageSize: STORE_PAGE_SIZE },
-      {
-        search: filters.q,
-        categories: filters.category,
-        minPrice: filters.minPrice,
-        maxPrice: filters.maxPrice,
-      }
-    ),
-    getCategories(),
+  // Parallel fetch: categories with slugs and price range
+  const [categoriesWithSlugs, priceRange] = await Promise.all([
+    getCategoriesWithSlugs(),
     getPriceRange(),
   ]);
+
+  // Build slug-to-name mapping for converting URL slugs to database names
+  const slugToName = new Map(categoriesWithSlugs.map(c => [c.slug, c.name]));
+
+  // Convert URL slugs to category names for database query
+  const categoryNames = filters.category
+    ?.map(slug => slugToName.get(slug))
+    .filter((name): name is string => name !== undefined)
+    ?? undefined;
+
+  // If user requested categories but none matched known slugs,
+  // force zero results instead of silently returning all products
+  const effectiveCategories =
+    filters.category && filters.category.length > 0 && categoryNames?.length === 0
+      ? ["__no_match__"]
+      : categoryNames;
+
+  // Fetch products with converted category names
+  const { products, pagination } = await getActiveProductsPaginated(
+    { page: filters.page, pageSize: STORE_PAGE_SIZE },
+    {
+      search: filters.q,
+      categories: effectiveCategories,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+    }
+  );
 
   // Count active filters for badge
   const activeFilterCount = countActiveFilters(filters);
 
-  // Build page title based on filters
+  // Build page title based on filters (using display names)
+  const displayCategoryNames = filters.category
+    ?.map(slug => slugToName.get(slug) ?? slug)
+    ?? [];
+
   let pageTitle = "Tất cả sản phẩm";
   let pageSubtitle = "Khám phá toàn bộ bộ sưu tập nội thất hiện đại.";
 
   if (filters.q) {
     pageTitle = `Kết quả tìm kiếm`;
     pageSubtitle = `Tìm kiếm: "${filters.q}"`;
-  } else if (filters.category && filters.category.length === 1) {
-    pageTitle = filters.category[0];
-    pageSubtitle = `Khám phá bộ sưu tập ${filters.category[0].toLowerCase()} của chúng tôi.`;
-  } else if (filters.category && filters.category.length > 1) {
+  } else if (displayCategoryNames.length === 1) {
+    pageTitle = displayCategoryNames[0];
+    pageSubtitle = `Khám phá bộ sưu tập ${displayCategoryNames[0].toLowerCase()} của chúng tôi.`;
+  } else if (displayCategoryNames.length > 1) {
     pageTitle = "Nhiều danh mục";
-    pageSubtitle = `Đang xem: ${filters.category.join(", ")}`;
+    pageSubtitle = `Đang xem: ${displayCategoryNames.join(", ")}`;
   }
+
+  // Extract just names for filter components
+  const categories = categoriesWithSlugs.map(c => c.name);
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
@@ -106,7 +140,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         <aside className="hidden lg:block w-[340px] shrink-0">
           <div className="sticky top-24 border rounded-xl p-6 bg-background shadow-sm">
             <h2 className="text-lg font-semibold mb-6">Bộ lọc</h2>
-            <ProductFilters categories={categories} priceRange={priceRange} />
+            <ProductFilters
+              categories={categories}
+              priceRange={priceRange}
+              categoriesWithSlugs={categoriesWithSlugs}
+            />
           </div>
         </aside>
 
@@ -120,7 +158,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               {pagination.totalItems} sản phẩm
             </p>
             <Suspense fallback={null}>
-              <ActiveFilterTags />
+              <ActiveFilterTags categoriesWithSlugs={categoriesWithSlugs} />
             </Suspense>
           </div>
 
@@ -167,6 +205,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             categories={categories}
             priceRange={priceRange}
             activeFilterCount={activeFilterCount}
+            categoriesWithSlugs={categoriesWithSlugs}
           />
         </Suspense>
       </div>

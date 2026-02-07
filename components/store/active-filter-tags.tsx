@@ -6,16 +6,31 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn, formatPrice } from "@/lib/utils";
 
+interface CategoryWithSlug {
+  name: string;
+  slug: string;
+}
+
 interface FilterTag {
   key: string;
   label: string;
   value: string;
 }
 
-export function ActiveFilterTags() {
+interface ActiveFilterTagsProps {
+  categoriesWithSlugs?: CategoryWithSlug[];
+}
+
+export function ActiveFilterTags({ categoriesWithSlugs }: ActiveFilterTagsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+
+  // Build slug to name mapping
+  const slugToName = useMemo(() => {
+    if (!categoriesWithSlugs) return new Map<string, string>();
+    return new Map(categoriesWithSlugs.map(c => [c.slug, c.name]));
+  }, [categoriesWithSlugs]);
 
   // Parse active filters from URL
   const activeTags = useMemo<FilterTag[]>(() => {
@@ -31,15 +46,22 @@ export function ActiveFilterTags() {
       });
     }
 
-    // Categories (comma-separated)
-    const categoryParam = searchParams.get("category");
-    if (categoryParam) {
-      const categories = categoryParam.split(",").filter(Boolean);
-      categories.forEach((cat) => {
+    // Categories - handle both comma-separated and repeated params
+    const allCategoryValues = searchParams.getAll("category");
+    const categorySlugSet = new Set<string>();
+    for (const value of allCategoryValues) {
+      for (const slug of value.split(",")) {
+        if (slug) categorySlugSet.add(slug);
+      }
+    }
+    if (categorySlugSet.size > 0) {
+      categorySlugSet.forEach((slug) => {
+        // Display Vietnamese name, but store slug as value
+        const displayName = slugToName.get(slug) ?? slug;
         tags.push({
-          key: `category:${cat}`,
-          label: cat,
-          value: cat,
+          key: `category:${slug}`,
+          label: displayName,
+          value: slug,
         });
       });
     }
@@ -64,7 +86,7 @@ export function ActiveFilterTags() {
     }
 
     return tags;
-  }, [searchParams]);
+  }, [searchParams, slugToName]);
 
   // Remove a single filter
   const removeFilter = useCallback(
@@ -75,16 +97,20 @@ export function ActiveFilterTags() {
         if (tag.key === "q") {
           params.delete("q");
         } else if (tag.key.startsWith("category:")) {
-          // Remove single category from comma-separated list
-          const categoryParam = params.get("category");
-          if (categoryParam) {
-            const categories = categoryParam.split(",").filter(Boolean);
-            const updated = categories.filter((c) => c !== tag.value);
-            if (updated.length > 0) {
-              params.set("category", updated.join(","));
-            } else {
-              params.delete("category");
+          // Remove single category slug - handle both comma-separated and repeated params
+          const allCategoryValues = params.getAll("category");
+          const allSlugs = new Set<string>();
+          for (const value of allCategoryValues) {
+            for (const slug of value.split(",")) {
+              if (slug) allSlugs.add(slug);
             }
+          }
+          allSlugs.delete(tag.value);
+
+          // Clear all category params and set single comma-separated value
+          params.delete("category");
+          if (allSlugs.size > 0) {
+            params.set("category", Array.from(allSlugs).join(","));
           }
         } else if (tag.key === "price") {
           params.delete("minPrice");

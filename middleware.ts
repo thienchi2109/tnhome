@@ -22,7 +22,10 @@ export default clerkMiddleware(async (auth, req) => {
     // Fetch user from Clerk to get email
     const client = await clerkClient();
     const user = await client.users.getUser(userId);
-    const userEmail = user.emailAddresses[0]?.emailAddress?.toLowerCase() || "";
+    const userEmail =
+      user.emailAddresses
+        .find((e) => e.id === user.primaryEmailAddressId)
+        ?.emailAddress?.toLowerCase() || "";
 
     if (!ADMIN_EMAILS.includes(userEmail)) {
       // Not an admin - redirect to home with error

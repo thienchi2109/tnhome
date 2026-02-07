@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { ProductForm } from "@/components/admin/product-form";
-import { getProduct } from "@/lib/actions";
+import { getProduct, getAllCategories } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +11,12 @@ interface EditProductPageProps {
 
 export default async function EditProductPage({ params }: EditProductPageProps) {
   const { id } = await params;
-  const product = await getProduct(id);
+  
+  // Fetch product and categories in parallel
+  const [product, categories] = await Promise.all([
+    getProduct(id),
+    getAllCategories(),
+  ]);
 
   if (!product) {
     notFound();
@@ -27,7 +32,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
       <main className="flex-1 p-6">
         <div className="mx-auto max-w-2xl">
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
-            <ProductForm initialData={product} />
+            <ProductForm initialData={product} categories={categories} />
           </div>
         </div>
       </main>

@@ -8,6 +8,7 @@ export interface CartItem {
 
 export interface Product {
   id: string;
+  externalId: string;
   name: string;
   description: string | null;
   price: number;
