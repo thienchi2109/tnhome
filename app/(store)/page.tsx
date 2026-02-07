@@ -16,7 +16,7 @@ export default async function HomePage() {
     getCategoriesWithSlugs(),
   ]);
 
-  const products = allProducts.slice(0, 8);
+  const products = allProducts.slice(0, 24);
   const totalCount = allProducts.length;
 
   return (
@@ -60,8 +60,8 @@ export default async function HomePage() {
               </Button>
             }
           />
-          <ProductGrid products={products} />
-          {totalCount > 8 && (
+          <ProductGrid products={products} mobileLimit={12} />
+          {totalCount > 24 && (
             <div className="mt-10 text-center">
               <Button
                 variant="outline"
