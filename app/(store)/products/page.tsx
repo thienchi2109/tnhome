@@ -90,12 +90,19 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     .filter((name): name is string => name !== undefined)
     ?? undefined;
 
+  // If user requested categories but none matched known slugs,
+  // force zero results instead of silently returning all products
+  const effectiveCategories =
+    filters.category && filters.category.length > 0 && categoryNames?.length === 0
+      ? ["__no_match__"]
+      : categoryNames;
+
   // Fetch products with converted category names
   const { products, pagination } = await getActiveProductsPaginated(
     { page: filters.page, pageSize: STORE_PAGE_SIZE },
     {
       search: filters.q,
-      categories: categoryNames,
+      categories: effectiveCategories,
       minPrice: filters.minPrice,
       maxPrice: filters.maxPrice,
     }
