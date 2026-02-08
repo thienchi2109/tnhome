@@ -165,42 +165,39 @@ export async function toggleProductStatus(
 export async function getProducts(
   params?: PaginationParams
 ): Promise<PaginatedProducts> {
-  const { page, pageSize } = params ?? {
+  const { page: rawPage, pageSize } = params ?? {
     page: DEFAULT_PAGE,
     pageSize: DEFAULT_PAGE_SIZE,
   };
 
+  const totalItems = await prisma.product.count();
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const page = Math.min(rawPage, totalPages);
   const skip = (page - 1) * pageSize;
 
-  const [totalItems, products] = await Promise.all([
-    prisma.product.count(),
-    prisma.product.findMany({
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: pageSize,
-      select: {
-        id: true,
-        externalId: true,
-        name: true,
-        description: true,
-        price: true,
-        category: true,
-        images: true,
-        isActive: true,
-        stock: true,
-        lowStockThreshold: true,
-        createdAt: true,
-      },
-    }),
-  ]);
-
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const validPage = Math.min(page, totalPages);
+  const products = await prisma.product.findMany({
+    orderBy: { createdAt: "desc" },
+    skip,
+    take: pageSize,
+    select: {
+      id: true,
+      externalId: true,
+      name: true,
+      description: true,
+      price: true,
+      category: true,
+      images: true,
+      isActive: true,
+      stock: true,
+      lowStockThreshold: true,
+      createdAt: true,
+    },
+  });
 
   return {
     products,
     pagination: {
-      page: validPage,
+      page,
       pageSize,
       totalItems,
       totalPages,
@@ -256,12 +253,10 @@ export async function getActiveProductsPaginated(
   params?: PaginationParams,
   filters?: string | ProductFilterOptions
 ): Promise<PaginatedProducts> {
-  const { page, pageSize } = params ?? {
+  const { page: rawPage, pageSize } = params ?? {
     page: DEFAULT_PAGE,
     pageSize: DEFAULT_PAGE_SIZE,
   };
-
-  const skip = (page - 1) * pageSize;
 
   const filterOptions: ProductFilterOptions =
     typeof filters === "string" ? { categories: [filters] } : filters ?? {};
@@ -291,36 +286,35 @@ export async function getActiveProductsPaginated(
     }),
   };
 
-  const [totalItems, products] = await Promise.all([
-    prisma.product.count({ where: whereClause }),
-    prisma.product.findMany({
-      where: whereClause,
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: pageSize,
-      select: {
-        id: true,
-        externalId: true,
-        name: true,
-        description: true,
-        price: true,
-        category: true,
-        images: true,
-        isActive: true,
-        stock: true,
-        lowStockThreshold: true,
-        createdAt: true,
-      },
-    }),
-  ]);
-
+  const totalItems = await prisma.product.count({ where: whereClause });
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const validPage = Math.min(page, totalPages);
+  const page = Math.min(rawPage, totalPages);
+  const skip = (page - 1) * pageSize;
+
+  const products = await prisma.product.findMany({
+    where: whereClause,
+    orderBy: { createdAt: "desc" },
+    skip,
+    take: pageSize,
+    select: {
+      id: true,
+      externalId: true,
+      name: true,
+      description: true,
+      price: true,
+      category: true,
+      images: true,
+      isActive: true,
+      stock: true,
+      lowStockThreshold: true,
+      createdAt: true,
+    },
+  });
 
   return {
     products,
     pagination: {
-      page: validPage,
+      page,
       pageSize,
       totalItems,
       totalPages,

@@ -11,11 +11,25 @@ export function OrderSearch() {
   const [value, setValue] = useState(searchParams.get("search") || "");
   const routerRef = useRef(router);
   const searchParamsRef = useRef(searchParams);
+  const isProgrammatic = useRef(false);
 
   useEffect(() => {
     routerRef.current = router;
     searchParamsRef.current = searchParams;
   }, [router, searchParams]);
+
+  // Sync input value when URL search param changes externally (back/forward, filter clicks)
+  useEffect(() => {
+    if (isProgrammatic.current) {
+      isProgrammatic.current = false;
+      return;
+    }
+    const urlSearch = searchParams.get("search") || "";
+    if (urlSearch !== value) {
+      setValue(urlSearch);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -36,6 +50,7 @@ export function OrderSearch() {
       routerRef.current.push(
         queryString ? `/admin/orders?${queryString}` : "/admin/orders"
       );
+      isProgrammatic.current = true;
     }, 400);
 
     return () => clearTimeout(timer);

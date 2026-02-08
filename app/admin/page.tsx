@@ -2,6 +2,7 @@ import { AdminHeader } from "@/components/admin/admin-header";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/utils";
 import { OrderStatusBadge } from "@/components/admin/order-status-badge";
+import type { OrderStatus } from "@/types";
 import {
   Package,
   PackageCheck,
@@ -268,7 +269,7 @@ export default async function AdminDashboardPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <OrderStatusBadge status={order.status} />
+                  <OrderStatusBadge status={order.status as OrderStatus} />
                   <p className="text-sm font-semibold text-foreground">
                     {formatPrice(order.total)}
                   </p>

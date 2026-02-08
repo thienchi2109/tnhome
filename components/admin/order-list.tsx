@@ -8,11 +8,12 @@ import { OrderActions } from "./order-actions";
 import { PaginationNav } from "@/components/ui/pagination-nav";
 import { ShoppingCart } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { OrderStatus } from "@/types";
 
 interface OrderItem {
   id: string;
   total: number;
-  status: string;
+  status: OrderStatus;
   shippingName: string;
   shippingPhone: string;
   createdAt: string;
@@ -31,8 +32,10 @@ interface OrdersResponse {
 
 export function OrderList() {
   const searchParams = useSearchParams();
-  const page = Number(searchParams.get("page") || "1");
-  const pageSize = Number(searchParams.get("pageSize") || "20");
+  const rawPage = Number(searchParams.get("page") || "1");
+  const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
+  const rawPageSize = Number(searchParams.get("pageSize") || "20");
+  const pageSize = Number.isFinite(rawPageSize) && rawPageSize > 0 ? Math.min(Math.floor(rawPageSize), 100) : 20;
   const status = searchParams.get("status") || "";
   const search = searchParams.get("search") || "";
 
@@ -118,7 +121,7 @@ export function OrderList() {
                         #{order.id.slice(-8).toUpperCase()}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(order.createdAt).toLocaleDateString("vi-VN", {
+                        {new Date(order.createdAt).toLocaleString("vi-VN", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
@@ -177,15 +180,73 @@ export function OrderList() {
 function OrderListSkeleton() {
   return (
     <div className="rounded-2xl border bg-white shadow-sm overflow-hidden">
-      <div className="p-4 space-y-4">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-4">
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 flex-1" />
-            <Skeleton className="h-10 w-20" />
-            <Skeleton className="h-10 w-24" />
-          </div>
-        ))}
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b bg-muted/30">
+              <th className="p-4">
+                <Skeleton className="h-3 w-20 rounded-full" />
+              </th>
+              <th className="p-4">
+                <Skeleton className="h-3 w-24 rounded-full" />
+              </th>
+              <th className="p-4 hidden md:table-cell">
+                <Skeleton className="h-3 w-16 rounded-full" />
+              </th>
+              <th className="p-4">
+                <Skeleton className="ml-auto h-3 w-14 rounded-full" />
+              </th>
+              <th className="p-4">
+                <Skeleton className="ml-auto h-3 w-14 rounded-full" />
+              </th>
+              <th className="p-4">
+                <Skeleton className="h-3 w-16 rounded-full" />
+              </th>
+              <th className="p-4">
+                <Skeleton className="ml-auto h-3 w-14 rounded-full" />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <tr key={i} className="border-b last:border-0">
+                <td className="p-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24 rounded-full" />
+                    <Skeleton className="h-3 w-32 rounded-full" />
+                  </div>
+                </td>
+                <td className="p-4">
+                  <Skeleton className="h-4 w-28 rounded-full md:w-40" />
+                </td>
+                <td className="p-4 hidden md:table-cell">
+                  <Skeleton className="h-4 w-28 rounded-full" />
+                </td>
+                <td className="p-4">
+                  <Skeleton className="ml-auto h-4 w-10 rounded-full" />
+                </td>
+                <td className="p-4">
+                  <Skeleton className="ml-auto h-4 w-20 rounded-full" />
+                </td>
+                <td className="p-4">
+                  <Skeleton className="h-7 w-24 rounded-full" />
+                </td>
+                <td className="p-4">
+                  <Skeleton className="ml-auto h-8 w-8 rounded-md" />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex items-center justify-between border-t bg-muted/20 px-4 py-3">
+        <Skeleton className="h-3 w-32 rounded-full" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-8 rounded-md" />
+          <Skeleton className="h-8 w-8 rounded-md" />
+          <Skeleton className="hidden h-8 w-8 rounded-md sm:block" />
+        </div>
       </div>
     </div>
   );
