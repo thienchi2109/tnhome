@@ -46,6 +46,24 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   CANCELLED: [],
 };
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 20;
+const MAX_PAGE_SIZE = 100;
+const ORDER_LIST_ORDER_BY: Prisma.OrderOrderByWithRelationInput[] = [
+  { createdAt: "desc" },
+  { id: "desc" },
+];
+
+function normalizePagination(params?: { page?: number; pageSize?: number }) {
+  const rawPage = params?.page ?? DEFAULT_PAGE;
+  const rawPageSize = params?.pageSize ?? DEFAULT_PAGE_SIZE;
+
+  return {
+    page: Math.max(1, Math.floor(rawPage)),
+    pageSize: Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(rawPageSize))),
+  };
+}
+
 // Find or create customer with deduplication
 async function findOrCreateCustomer(
   tx: Prisma.TransactionClient,
@@ -323,8 +341,7 @@ export async function getOrders(
 ) {
   await requireAdmin();
 
-  const rawPage = params?.page ?? 1;
-  const pageSize = params?.pageSize ?? 20;
+  const { page: rawPage, pageSize } = normalizePagination(params);
 
   const where: Prisma.OrderWhereInput = {};
 
@@ -332,43 +349,50 @@ export async function getOrders(
     where.status = filters.status;
   }
 
-  if (filters?.search) {
-    const search = filters.search.slice(0, 200);
+  const searchTerm = filters?.search?.trim().slice(0, 200);
+  if (searchTerm) {
     where.OR = [
-      { id: { contains: search, mode: "insensitive" } },
-      { shippingName: { contains: search, mode: "insensitive" } },
-      { shippingPhone: { contains: search } },
+      { id: { contains: searchTerm, mode: "insensitive" } },
+      { shippingName: { contains: searchTerm, mode: "insensitive" } },
+      { shippingPhone: { contains: searchTerm } },
     ];
   }
 
-  const totalItems = await prisma.order.count({ where });
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const page = Math.max(1, Math.min(rawPage, totalPages));
-  const skip = (page - 1) * pageSize;
+  const result = await prisma.$transaction(
+    async (tx) => {
+      const totalItems = await tx.order.count({ where });
+      const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+      const page = Math.max(1, Math.min(rawPage, totalPages));
+      const skip = (page - 1) * pageSize;
 
-  const orders = await prisma.order.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    skip,
-    take: pageSize,
-    select: {
-      id: true,
-      total: true,
-      status: true,
-      shippingName: true,
-      shippingPhone: true,
-      createdAt: true,
-      _count: { select: { items: true } },
+      const orders = await tx.order.findMany({
+        where,
+        orderBy: ORDER_LIST_ORDER_BY,
+        skip,
+        take: pageSize,
+        select: {
+          id: true,
+          total: true,
+          status: true,
+          shippingName: true,
+          shippingPhone: true,
+          createdAt: true,
+          _count: { select: { items: true } },
+        },
+      });
+
+      return { orders, page, totalItems, totalPages };
     },
-  });
+    { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
+  );
 
   return {
-    orders,
+    orders: result.orders,
     pagination: {
-      page,
+      page: result.page,
       pageSize,
-      totalItems,
-      totalPages,
+      totalItems: result.totalItems,
+      totalPages: result.totalPages,
     },
   };
 }

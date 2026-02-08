@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { requireAdminMock, orderCountMock, orderFindManyMock } = vi.hoisted(
+const { requireAdminMock, orderCountMock, orderFindManyMock, transactionMock } = vi.hoisted(
   () => ({
     requireAdminMock: vi.fn(),
     orderCountMock: vi.fn(),
     orderFindManyMock: vi.fn(),
+    transactionMock: vi.fn(),
   })
 );
 
@@ -15,10 +16,7 @@ vi.mock("@/lib/actions/admin-auth", () => ({
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    order: {
-      count: orderCountMock,
-      findMany: orderFindManyMock,
-    },
+    $transaction: transactionMock,
   },
 }));
 
@@ -37,6 +35,15 @@ describe("getOrders pagination", () => {
     requireAdminMock.mockResolvedValue(undefined);
     orderCountMock.mockReset();
     orderFindManyMock.mockReset();
+    transactionMock.mockReset();
+    transactionMock.mockImplementation(async (callback: (tx: unknown) => unknown) =>
+      callback({
+        order: {
+          count: orderCountMock,
+          findMany: orderFindManyMock,
+        },
+      })
+    );
   });
 
   it("clamps requested page before calculating skip", async () => {
@@ -59,10 +66,15 @@ describe("getOrders pagination", () => {
 
     const result = await getOrders({ page: 100, pageSize: 20 });
 
+    expect(transactionMock).toHaveBeenCalledTimes(1);
+    expect(transactionMock.mock.calls[0][1]).toMatchObject({
+      isolationLevel: "RepeatableRead",
+    });
     expect(orderFindManyMock).toHaveBeenCalledTimes(1);
     expect(orderFindManyMock.mock.calls[0][0]).toMatchObject({
       skip: 40,
       take: 20,
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     });
     expect(result.pagination).toMatchObject({
       page: 3,
