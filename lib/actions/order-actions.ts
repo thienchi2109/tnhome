@@ -322,9 +322,8 @@ export async function getOrders(
 ) {
   await requireAdmin();
 
-  const page = params?.page ?? 1;
+  const rawPage = params?.page ?? 1;
   const pageSize = params?.pageSize ?? 20;
-  const skip = (page - 1) * pageSize;
 
   const where: Prisma.OrderWhereInput = {};
 
@@ -341,31 +340,31 @@ export async function getOrders(
     ];
   }
 
-  const [totalItems, orders] = await Promise.all([
-    prisma.order.count({ where }),
-    prisma.order.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: pageSize,
-      select: {
-        id: true,
-        total: true,
-        status: true,
-        shippingName: true,
-        shippingPhone: true,
-        createdAt: true,
-        _count: { select: { items: true } },
-      },
-    }),
-  ]);
-
+  const totalItems = await prisma.order.count({ where });
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const page = Math.max(1, Math.min(rawPage, totalPages));
+  const skip = (page - 1) * pageSize;
+
+  const orders = await prisma.order.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+    skip,
+    take: pageSize,
+    select: {
+      id: true,
+      total: true,
+      status: true,
+      shippingName: true,
+      shippingPhone: true,
+      createdAt: true,
+      _count: { select: { items: true } },
+    },
+  });
 
   return {
     orders,
     pagination: {
-      page: Math.min(page, totalPages),
+      page,
       pageSize,
       totalItems,
       totalPages,
