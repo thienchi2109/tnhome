@@ -12,9 +12,10 @@ interface Product {
 interface ProductGridProps {
   products: Product[];
   isLoading?: boolean;
+  mobileLimit?: number;
 }
 
-export function ProductGrid({ products, isLoading }: ProductGridProps) {
+export function ProductGrid({ products, isLoading, mobileLimit }: ProductGridProps) {
   if (isLoading) {
     return <ProductGridSkeleton count={12} />;
   }
@@ -46,15 +47,19 @@ export function ProductGrid({ products, isLoading }: ProductGridProps) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8 md:gap-x-6 md:gap-y-12">
-      {products.map((product) => (
-        <ProductCard
+      {products.map((product, index) => (
+        <div
           key={product.id}
-          id={product.id}
-          name={product.name}
-          price={product.price}
-          images={product.images}
-          category={product.category}
-        />
+          className={mobileLimit && index >= mobileLimit ? "hidden lg:block" : undefined}
+        >
+          <ProductCard
+            id={product.id}
+            name={product.name}
+            price={product.price}
+            images={product.images}
+            category={product.category}
+          />
+        </div>
       ))}
     </div>
   );

@@ -398,6 +398,15 @@ npm.cmd run dev                  # ✅ PowerShell npm
 npx.cmd prisma generate          # ✅ PowerShell npx
 ```
 
+**Bash paths with parentheses:** Next.js route groups use `(group)` syntax in folder names. Parentheses are special in bash — always quote paths containing them:
+```bash
+# ✅ CORRECT - quoted paths
+git add "app/(store)/products/page.tsx"
+
+# ❌ WRONG - unquoted parentheses cause syntax errors
+git add app/(store)/products/page.tsx
+```
+
 ### PowerShell-Specific Syntax
 
 **Docker Commands with Queries:**

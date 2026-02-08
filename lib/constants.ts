@@ -1,9 +1,17 @@
 // Pagination constants for the storefront
 export const STORE_PAGE_SIZE = 24; // For public storefront grid (4 rows on desktop)
 
-// Pagination constants (internal)
+// Page size options for admin pagination
+export const PAGE_SIZE_OPTIONS = [
+  { value: "10", label: "10 dòng" },
+  { value: "20", label: "20 dòng" },
+  { value: "50", label: "50 dòng" },
+  { value: "100", label: "100 dòng" },
+];
+
+// Pagination constants
 const DEFAULT_PAGE = 1;
-const DEFAULT_PAGE_SIZE = 20;
+export const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100; // Maximum allowed page size to prevent abuse
 const ALLOWED_PAGE_SIZES = [10, 12, 20, 24, 50, 100] as const;
 
