@@ -351,6 +351,8 @@ export async function getOrders(
 
   const searchTerm = filters?.search?.trim().slice(0, 200);
   if (searchTerm) {
+    // Contains/ILIKE search is backed by pg_trgm GIN indexes from
+    // prisma/migrations/harden_search_filter_indexes.sql.
     where.OR = [
       { id: { contains: searchTerm, mode: "insensitive" } },
       { shippingName: { contains: searchTerm, mode: "insensitive" } },

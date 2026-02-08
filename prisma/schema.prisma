@@ -64,6 +64,9 @@ model Order {
   @@index([status])
   @@index([customerId])
   @@index([createdAt])
+  // NOTE: contains/ILIKE search indexes for id/shippingName/shippingPhone
+  // are managed in raw SQL migration:
+  // prisma/migrations/harden_search_filter_indexes.sql
 }
 
 model OrderItem {
