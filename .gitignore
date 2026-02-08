@@ -50,3 +50,7 @@ next-env.d.ts
 # agent files
 .shared/
 .agent/
+
+.claude/commands/
+.claude/skills/ui-ux-pro-max/scripts/__pycache__/
+.claude/settings.local.json
