@@ -3,6 +3,7 @@
 import { cn, formatPrice } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 
 interface ProductCardProps {
   id: string;
@@ -11,12 +12,14 @@ interface ProductCardProps {
   image?: string;
   images?: string[];
   category?: string;
+  stock?: number;
 }
 
-export function ProductCard({ id, name, price, image, images, category }: ProductCardProps) {
+export function ProductCard({ id, name, price, image, images, category, stock }: ProductCardProps) {
   // Normalize to array for backward compatibility
   const imageList = images ?? (image ? [image] : []);
   const hasMultipleImages = imageList.length > 1;
+  const isOutOfStock = stock !== undefined && stock <= 0;
 
   return (
     <Link href={`/product/${id}`} className="group flex flex-col gap-4">
@@ -55,6 +58,18 @@ export function ProductCard({ id, name, price, image, images, category }: Produc
           <div className="absolute inset-0 bg-secondary flex items-center justify-center">
             <span className="text-muted-foreground text-sm">No image</span>
           </div>
+        )}
+
+        {/* Out of Stock Overlay */}
+        {isOutOfStock && (
+          <>
+            <div className="absolute inset-0 bg-white/60 z-10" />
+            <div className="absolute top-3 left-3 z-20">
+              <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-0">
+                Hết hàng
+              </Badge>
+            </div>
+          </>
         )}
       </div>
 

@@ -16,10 +16,12 @@ model Product {
   price       Int
   images      String[]
   category    String
-  isActive    Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  orderItems  OrderItem[]
+  isActive          Boolean     @default(true)
+  stock             Int         @default(0)
+  lowStockThreshold Int         @default(5) @map("low_stock_threshold")
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  orderItems        OrderItem[]
 
   // Optimized indexes for filtering/searching
   @@index([category])

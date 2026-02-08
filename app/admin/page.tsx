@@ -1,6 +1,7 @@
 import { AdminHeader } from "@/components/admin/admin-header";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/utils";
+import { OrderStatusBadge } from "@/components/admin/order-status-badge";
 import {
   Package,
   PackageCheck,
@@ -9,6 +10,7 @@ import {
   Plus,
   Store,
   ArrowUpRight,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -16,7 +18,7 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 async function getDashboardStats() {
-  const [totalProducts, activeProducts, totalOrders, revenueData] =
+  const [totalProducts, activeProducts, totalOrders, revenueData, outOfStock, lowStockCount] =
     await Promise.all([
       prisma.product.count(),
       prisma.product.count({
@@ -28,6 +30,13 @@ async function getDashboardStats() {
           total: true,
         },
       }),
+      prisma.product.count({
+        where: { isActive: true, stock: 0 },
+      }),
+      prisma.$queryRaw<[{ count: bigint }]>`
+        SELECT COUNT(*)::bigint as count FROM "Product"
+        WHERE "isActive" = true AND "stock" <= "low_stock_threshold" AND "stock" > 0
+      `,
     ]);
 
   return {
@@ -35,6 +44,8 @@ async function getDashboardStats() {
     activeProducts,
     totalOrders,
     revenue: revenueData._sum.total || 0,
+    outOfStock,
+    lowStock: Number(lowStockCount[0]?.count ?? 0),
   };
 }
 
@@ -62,28 +73,24 @@ export default async function AdminDashboardPage() {
       title: "Tổng sản phẩm",
       value: stats.totalProducts,
       icon: Package,
-      trend: null,
       color: "blue",
     },
     {
       title: "Sản phẩm đang bán",
       value: stats.activeProducts,
       icon: PackageCheck,
-      trend: null,
       color: "green",
     },
     {
       title: "Tổng đơn hàng",
       value: stats.totalOrders,
       icon: ShoppingCart,
-      trend: null,
       color: "purple",
     },
     {
       title: "Doanh thu",
       value: formatPrice(stats.revenue),
       icon: TrendingUp,
-      trend: null,
       color: "orange",
     },
   ];
@@ -158,6 +165,32 @@ export default async function AdminDashboardPage() {
           })}
         </div>
 
+        {/* Low Stock Warning */}
+        {(stats.lowStock > 0 || stats.outOfStock > 0) && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-amber-900">Cảnh báo tồn kho</h3>
+                <p className="text-sm text-amber-800 mt-1">
+                  {stats.outOfStock > 0 && (
+                    <span>{stats.outOfStock} sản phẩm hết hàng. </span>
+                  )}
+                  {stats.lowStock > 0 && (
+                    <span>{stats.lowStock} sản phẩm sắp hết hàng.</span>
+                  )}
+                </p>
+              </div>
+              <Link
+                href="/admin/products"
+                className="text-sm font-medium text-amber-700 hover:text-amber-900 transition-colors whitespace-nowrap"
+              >
+                Xem sản phẩm
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="rounded-2xl border bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-foreground">
@@ -220,35 +253,26 @@ export default async function AdminDashboardPage() {
                   key={order.id}
                   className="flex items-center justify-between rounded-xl border bg-muted/30 p-4 transition-colors hover:bg-muted/50"
                 >
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-foreground">
-                      Đơn hàng #{order.id.slice(-8).toUpperCase()}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(order.createdAt).toLocaleDateString("vi-VN", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${order.status === "COMPLETED"
-                          ? "bg-green-100 text-green-800"
-                          : order.status === "PENDING"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                    >
-                      {order.status}
-                    </span>
-                    <p className="text-sm font-semibold text-foreground">
-                      {formatPrice(order.total)}
-                    </p>
-                  </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-foreground">
+                    Đơn hàng #{order.id.slice(-8).toUpperCase()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(order.createdAt).toLocaleDateString("vi-VN", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <OrderStatusBadge status={order.status} />
+                  <p className="text-sm font-semibold text-foreground">
+                    {formatPrice(order.total)}
+                  </p>
+                </div>
                 </div>
               ))}
             </div>

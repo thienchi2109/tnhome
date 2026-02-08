@@ -8,7 +8,7 @@ interface CartState {
 }
 
 interface CartActions {
-  addItem: (item: Omit<CartItem, "quantity">) => void;
+  addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -27,18 +27,27 @@ export const useCartStore = create<CartStore>()(
       items: [],
       isOpen: false,
 
-      addItem: (item) => {
+      addItem: (item, quantity = 1) => {
+        // Skip if out of stock
+        const stock = item.stock ?? 99;
+        if (stock <= 0) return;
+
+        const addQty = Math.max(1, quantity);
         const { items } = get();
         const existingItem = items.find((i) => i.id === item.id);
 
         if (existingItem) {
+          // Don't exceed available stock
+          const newQty = Math.min(existingItem.quantity + addQty, stock);
+          if (newQty <= existingItem.quantity) return;
           set({
             items: items.map((i) =>
-              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+              i.id === item.id ? { ...i, quantity: newQty, stock } : i
             ),
           });
         } else {
-          set({ items: [...items, { ...item, quantity: 1 }] });
+          const cappedQty = Math.min(addQty, stock);
+          set({ items: [...items, { ...item, quantity: cappedQty }] });
         }
         set({ isOpen: true });
       },
@@ -53,7 +62,12 @@ export const useCartStore = create<CartStore>()(
           return;
         }
         set({
-          items: get().items.map((i) => (i.id === id ? { ...i, quantity } : i)),
+          items: get().items.map((i) => {
+            if (i.id !== id) return i;
+            // Cap at available stock (defensive default for old localStorage data)
+            const maxStock = i.stock ?? 99;
+            return { ...i, quantity: Math.min(quantity, maxStock) };
+          }),
         });
       },
 
@@ -75,6 +89,17 @@ export const useCartStore = create<CartStore>()(
       name: "tnhome-cart",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ items: state.items }),
+      // Migrate old localStorage data that lacks `stock` field
+      merge: (persisted, current) => {
+        const persistedState = persisted as Partial<CartState> | undefined;
+        return {
+          ...current,
+          items: (persistedState?.items ?? []).map((item) => ({
+            ...item,
+            stock: item.stock ?? 99,
+          })),
+        };
+      },
     }
   )
 );

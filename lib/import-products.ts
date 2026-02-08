@@ -18,6 +18,8 @@ const importRowSchema = z.object({
     .min(1),
   description: z.string().optional(),
   isActive: z.boolean().default(true),
+  stock: z.number().int().min(0).default(0),
+  lowStockThreshold: z.number().int().min(0).default(5),
 });
 
 export type ImportRow = z.infer<typeof importRowSchema>;
@@ -36,6 +38,15 @@ const headerMap: Record<string, keyof ImportRow> = {
   images: "images",
   description: "description",
   isactive: "isActive",
+  stock: "stock",
+  low_stock_threshold: "lowStockThreshold",
+  lowstockthreshold: "lowStockThreshold",
+  "ton kho": "stock",
+  tonkho: "stock",
+  "tồn kho": "stock",
+  "tồnkho": "stock",
+  "nguong canh bao": "lowStockThreshold",
+  "ngưỡng cảnh báo": "lowStockThreshold",
 };
 
 const requiredHeaders: Array<keyof ImportRow> = [
@@ -141,6 +152,7 @@ export async function parseProductImportSheet(buffer: ArrayBuffer): Promise<{
       if (key === "images") record.images = parseImages(cellValue);
       else if (key === "price") record.price = Number(cellValue);
       else if (key === "isActive") record.isActive = parseBoolean(cellValue);
+      else if (key === "stock" || key === "lowStockThreshold") record[key] = cellValue != null ? Number(cellValue) : undefined;
       else record[key] = String(cellValue ?? "").trim();
     });
 

@@ -8,6 +8,8 @@ const columns: { header: string; key: string; width: number }[] = [
   { header: "images", key: "images", width: 40 },
   { header: "description", key: "description", width: 40 },
   { header: "isActive", key: "isActive", width: 10 },
+  { header: "stock", key: "stock", width: 10 },
+  { header: "low_stock_threshold", key: "low_stock_threshold", width: 18 },
 ];
 
 const exampleRow: Record<string, string | number | boolean> = {
@@ -18,6 +20,8 @@ const exampleRow: Record<string, string | number | boolean> = {
   images: "https://example.com/image1.jpg",
   description: "\u00C1o thun cotton 100%",
   isActive: true,
+  stock: 100,
+  low_stock_threshold: 5,
 };
 
 export async function createProductImportTemplate(): Promise<ArrayBuffer> {

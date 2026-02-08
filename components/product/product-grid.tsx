@@ -7,6 +7,7 @@ interface Product {
   price: number;
   category: string;
   images: string[];
+  stock?: number;
 }
 
 interface ProductGridProps {
@@ -58,6 +59,7 @@ export function ProductGrid({ products, isLoading, mobileLimit }: ProductGridPro
             price={product.price}
             images={product.images}
             category={product.category}
+            stock={product.stock}
           />
         </div>
       ))}
