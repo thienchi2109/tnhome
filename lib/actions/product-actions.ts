@@ -8,7 +8,7 @@ import { Prisma } from "@prisma/client";
 import type { PaginationParams } from "@/lib/constants";
 import { toSlug } from "@/lib/utils";
 import type { ActionResult, PaginatedProducts, ProductFilterOptions } from "./types";
-import { requireAdmin } from "./admin-auth";
+import { requireAdmin, isUnauthorizedError } from "./admin-auth";
 
 // Pagination constants
 const DEFAULT_PAGE = 1;
@@ -68,7 +68,7 @@ export async function createProduct(
 
     return { success: true, data: { id: product.id } };
   } catch (error) {
-    if (error instanceof Error && error.message === "Unauthorized") {
+    if (isUnauthorizedError(error)) {
       return { success: false, error: "Unauthorized" };
     }
     if (error instanceof z.ZodError) {
@@ -112,7 +112,7 @@ export async function updateProduct(
 
     return { success: true, data: { id: product.id } };
   } catch (error) {
-    if (error instanceof Error && error.message === "Unauthorized") {
+    if (isUnauthorizedError(error)) {
       return { success: false, error: "Unauthorized" };
     }
     if (error instanceof z.ZodError) {
@@ -138,7 +138,7 @@ export async function deleteProduct(id: string): Promise<ActionResult<null>> {
 
     return { success: true, data: null };
   } catch (error) {
-    if (error instanceof Error && error.message === "Unauthorized") {
+    if (isUnauthorizedError(error)) {
       return { success: false, error: "Unauthorized" };
     }
     console.error("Failed to delete product:", error);
@@ -165,7 +165,7 @@ export async function toggleProductStatus(
 
     return { success: true, data: null };
   } catch (error) {
-    if (error instanceof Error && error.message === "Unauthorized") {
+    if (isUnauthorizedError(error)) {
       return { success: false, error: "Unauthorized" };
     }
     console.error("Failed to toggle product status:", error);

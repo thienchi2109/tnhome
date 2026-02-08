@@ -2,6 +2,18 @@
 
 import { auth, clerkClient } from "@clerk/nextjs/server";
 
+// Custom error for unauthorized access
+export class UnauthorizedError extends Error {
+  constructor() {
+    super("Unauthorized");
+    this.name = "UnauthorizedError";
+  }
+}
+
+export function isUnauthorizedError(error: unknown): error is UnauthorizedError {
+  return error instanceof UnauthorizedError;
+}
+
 // Admin email configuration
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
   .split(",")
@@ -11,7 +23,7 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
 export async function requireAdmin(): Promise<{ userId: string; email: string }> {
   const { userId } = await auth();
   if (!userId) {
-    throw new Error("Unauthorized");
+    throw new UnauthorizedError();
   }
 
   const client = await clerkClient();
@@ -22,7 +34,7 @@ export async function requireAdmin(): Promise<{ userId: string; email: string }>
       ?.emailAddress?.toLowerCase() || "";
 
   if (!ADMIN_EMAILS.includes(userEmail)) {
-    throw new Error("Unauthorized");
+    throw new UnauthorizedError();
   }
 
   return { userId, email: userEmail };

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrders } from "@/lib/actions/order-actions";
+import { isUnauthorizedError } from "@/lib/actions/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    if (error instanceof Error && error.message === "Unauthorized") {
+    if (isUnauthorizedError(error)) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }

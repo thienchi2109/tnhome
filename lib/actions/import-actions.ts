@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { requireAdmin } from "./admin-auth";
+import { requireAdmin, isUnauthorizedError } from "./admin-auth";
 import { parseProductImportSheet } from "@/lib/import-products";
 import type { ActionResult } from "./types";
 
@@ -95,7 +95,7 @@ export async function bulkUpsertProducts(
 
     return { success: true, data: { created, updated, errors } };
   } catch (error) {
-    if (error instanceof Error && error.message === "Unauthorized") {
+    if (isUnauthorizedError(error)) {
       return { success: false, error: "Unauthorized" };
     }
     console.error("Bulk import failed:", error);

@@ -7,7 +7,7 @@ import { auth } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 import type { ActionResult } from "./types";
 import type { OrderStatus } from "@/types";
-import { requireAdmin } from "./admin-auth";
+import { requireAdmin, isUnauthorizedError } from "./admin-auth";
 
 // Order validation schema
 const orderItemSchema = z.object({
@@ -424,6 +424,9 @@ export async function updateOrderStatus(
 
     return { success: true, data: null };
   } catch (error) {
+    if (isUnauthorizedError(error)) {
+      return { success: false, error: "Unauthorized" };
+    }
     if (error instanceof Error) {
       if (error.message === "NOT_FOUND") {
         return { success: false, error: "Đơn hàng không tồn tại" };
