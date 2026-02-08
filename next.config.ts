@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "cdn-images.kiotviet.vn",
+        hostname: "**.kiotviet.vn",
       },
     ],
   },

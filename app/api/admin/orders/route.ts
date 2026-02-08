@@ -35,6 +35,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
     console.error("Failed to fetch orders:", error);
     return NextResponse.json(
       { error: "Failed to fetch orders" },
