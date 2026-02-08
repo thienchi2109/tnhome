@@ -92,7 +92,7 @@ export function ProductImportSheet() {
     e.preventDefault();
     setIsDragActive(false);
     const dropped = e.dataTransfer.files[0];
-    if (!dropped?.name.endsWith(".xlsx")) {
+    if (!dropped?.name.toLowerCase().endsWith(".xlsx")) {
       if (dropped) toast.error("Chỉ nhận file .xlsx");
       return;
     }
@@ -105,7 +105,7 @@ export function ProductImportSheet() {
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
-    if (selected && !selected.name.endsWith(".xlsx")) {
+    if (selected && !selected.name.toLowerCase().endsWith(".xlsx")) {
       toast.error("Chỉ nhận file .xlsx");
     } else if (selected && selected.size > 5 * 1024 * 1024) {
       toast.error("File quá lớn (tối đa 5MB)");
