@@ -22,14 +22,12 @@ export default async function HomePage() {
   return (
     <main className="flex flex-col pb-16">
       {/* Section 1: Editorial Tagline */}
-      <section className="pt-8 md:pt-12 pb-6 md:pb-8 px-6">
+      <section className="pt-8 md:pt-16 pb-8 md:pb-12 px-6">
         <div className="mx-auto max-w-[1400px]">
-          <h1 className="heading-hero text-foreground max-w-3xl">
-            Sản Phẩm Gia Dụng
-            <br />
-            Cho Cuộc Sống Hiện Đại.
+          <h1 className="heading-hero text-foreground max-w-4xl text-balance">
+            Sản Phẩm Gia Dụng Cho Cuộc Sống Hiện Đại.
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground max-w-lg">
+          <p className="mt-4 md:mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl text-balance">
             Chất lượng gặp thiết kế tối giản. Khám phá bộ sưu tập được chọn
             lọc cho ngôi nhà của bạn.
           </p>

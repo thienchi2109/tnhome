@@ -22,7 +22,10 @@ export function ProductCard({ id, name, price, image, images, category, stock }:
   const isOutOfStock = stock !== undefined && stock <= 0;
 
   return (
-    <Link href={`/product/${id}`} className="group flex flex-col gap-4">
+    <Link
+      href={`/product/${id}`}
+      className="group flex flex-col h-full overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md hover:-translate-y-1"
+    >
       <div className="aspect-[3/4] relative overflow-hidden bg-muted/30">
         {imageList.length > 0 ? (
           <>
@@ -73,17 +76,17 @@ export function ProductCard({ id, name, price, image, images, category, stock }:
         )}
       </div>
 
-      <div className="space-y-1">
-        <h3 className="heading-product text-foreground group-hover:underline decoration-1 underline-offset-4 transition-all">
+      <div className="flex flex-col gap-2 p-4">
+        <h3 className="font-medium text-base group-hover:text-primary transition-colors line-clamp-2 min-h-[3rem]">
           {name}
         </h3>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto">
           {category && (
-            <p className="text-caption">
+            <p className="text-xs text-muted-foreground line-clamp-1">
               {category}
             </p>
           )}
-          <span className="text-sm font-medium text-foreground">{formatPrice(price)}</span>
+          <span className="font-semibold text-foreground">{formatPrice(price)}</span>
         </div>
       </div>
     </Link>

@@ -36,4 +36,10 @@ export interface ProductFilterOptions {
   maxPrice?: number;
 }
 
+export interface AdminProductFilterOptions {
+  search?: string;
+  categories?: string[];
+  status?: "active" | "inactive";
+}
+
 export type { PaginationParams };
