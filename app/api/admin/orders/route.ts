@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrders } from "@/lib/actions/order-actions";
-import { isUnauthorizedError } from "@/lib/actions/admin-auth";
+import { isUnauthorizedError } from "@/lib/actions/errors";
 
 export const dynamic = "force-dynamic";
 

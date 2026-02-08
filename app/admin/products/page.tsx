@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { getProducts, getAllCategories } from "@/lib/actions";
+import { isUnauthorizedError } from "@/lib/actions/errors";
 import { normalizePaginationParams } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
 import { Plus, Upload, Download } from "lucide-react";
@@ -40,8 +41,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       getProducts(paginationParams),
       getAllCategories(),
     ]);
-  } catch {
-    redirect("/?error=unauthorized");
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      redirect("/?error=unauthorized");
+    }
+    throw error;
   }
 
   // Calculate display range

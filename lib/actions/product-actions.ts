@@ -8,7 +8,8 @@ import { Prisma } from "@prisma/client";
 import type { PaginationParams } from "@/lib/constants";
 import { toSlug } from "@/lib/utils";
 import type { ActionResult, PaginatedProducts, ProductFilterOptions } from "./types";
-import { requireAdmin, isUnauthorizedError } from "./admin-auth";
+import { requireAdmin } from "./admin-auth";
+import { isUnauthorizedError } from "./errors";
 
 // Pagination constants
 const DEFAULT_PAGE = 1;
