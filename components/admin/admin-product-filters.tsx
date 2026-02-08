@@ -56,7 +56,7 @@ export function AdminProductFilters({ categories }: AdminProductFiltersProps) {
       const params = new URLSearchParams(searchParams.toString());
 
       for (const [key, val] of Object.entries(updates)) {
-        if (val === null || val === "all" || val === "") {
+        if (val === null || val === "" || (key === "status" && val === "all")) {
           params.delete(key);
         } else {
           params.set(key, val);
