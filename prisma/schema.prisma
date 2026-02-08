@@ -9,13 +9,13 @@ datasource db {
 }
 
 model Product {
-  id          String      @id @default(cuid())
-  externalId  String      @unique @map("external_id")
-  name        String
-  description String?
-  price       Int
-  images      String[]
-  category    String
+  id                String      @id @default(cuid())
+  externalId        String      @unique @map("external_id")
+  name              String
+  description       String?
+  price             Int
+  images            String[]
+  category          String
   isActive          Boolean     @default(true)
   stock             Int         @default(0)
   lowStockThreshold Int         @default(5) @map("low_stock_threshold")
@@ -27,7 +27,10 @@ model Product {
   @@index([category])
   @@index([isActive])
   @@index([isActive, category, price])
-  @@index([isActive, createdAt(sort: Desc)])  // Sort optimization
+  @@index([isActive, createdAt(sort: Desc)]) // Sort optimization
+  @@index([isActive, category, createdAt(sort: Desc), id(sort: Desc)], map: "Product_isActive_category_createdAt_id_idx")
+  @@index([isActive, createdAt(sort: Desc), id(sort: Desc)], map: "Product_isActive_createdAt_id_idx")
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "Product_name_trgm_idx")
 }
 
 model Customer {
@@ -59,14 +62,18 @@ model Order {
   shippingPhone   String
   customer        Customer    @relation(fields: [customerId], references: [id])
   items           OrderItem[]
+  // NOTE: trigram search indexes are represented here to prevent Prisma
+  // migrate drift and are also created by SQL hardening migration.
 
   @@index([userId])
   @@index([status])
   @@index([customerId])
   @@index([createdAt])
-  // NOTE: contains/ILIKE search indexes for id/shippingName/shippingPhone
-  // are managed in raw SQL migration:
-  // prisma/migrations/harden_search_filter_indexes.sql
+  @@index([createdAt(sort: Desc), id(sort: Desc)], map: "Order_createdAt_id_idx")
+  @@index([status, createdAt(sort: Desc), id(sort: Desc)], map: "Order_status_createdAt_id_idx")
+  @@index([id(ops: raw("gin_trgm_ops"))], type: Gin, map: "Order_id_trgm_idx")
+  @@index([shippingName(ops: raw("gin_trgm_ops"))], type: Gin, map: "Order_shippingName_trgm_idx")
+  @@index([shippingPhone(ops: raw("gin_trgm_ops"))], type: Gin, map: "Order_shippingPhone_trgm_idx")
 }
 
 model OrderItem {
