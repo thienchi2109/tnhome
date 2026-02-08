@@ -25,15 +25,19 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; className: string }> =
 };
 
 interface OrderStatusBadgeProps {
-  status: OrderStatus;
+  status: string;
 }
 
 export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
-  const config = STATUS_CONFIG[status];
+  const config = STATUS_CONFIG[status as OrderStatus];
+  const label = config?.label ?? status;
+  const className =
+    config?.className ??
+    "bg-muted text-muted-foreground hover:bg-muted border-0";
 
-  return <Badge className={config.className}>{config.label}</Badge>;
+  return <Badge className={className}>{label}</Badge>;
 }
 
-export function getStatusLabel(status: OrderStatus): string {
-  return STATUS_CONFIG[status].label;
+export function getStatusLabel(status: string): string {
+  return STATUS_CONFIG[status as OrderStatus]?.label ?? status;
 }
