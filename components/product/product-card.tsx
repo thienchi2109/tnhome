@@ -86,7 +86,7 @@ export function ProductCard({ id, name, price, image, images, category, stock }:
               {category}
             </p>
           )}
-          <span className="font-semibold text-foreground">{formatPrice(price)}</span>
+          <span className="font-bold text-lg text-primary">{formatPrice(price)}</span>
         </div>
       </div>
     </Link>

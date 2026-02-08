@@ -76,6 +76,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
   const hasFilters = !!(params.q || params.category || params.status);
 
+  // Build filter query string to preserve filters in action links
+  const filterParams = new URLSearchParams();
+  if (params.q) filterParams.set("q", params.q);
+  if (params.category) filterParams.set("category", params.category);
+  if (params.status) filterParams.set("status", params.status);
+  const filterQuery = filterParams.toString();
+
   return (
     <div className="flex min-h-screen flex-col">
       <AdminHeader
@@ -105,13 +112,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               </a>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/admin/products?action=import">
+              <Link href={`/admin/products?action=import${filterQuery ? `&${filterQuery}` : ""}`}>
                 <Upload className="mr-1.5 h-4 w-4" />
                 Nhập Excel
               </Link>
             </Button>
             <Button asChild className="gap-2">
-              <Link href="/admin/products?action=new">
+              <Link href={`/admin/products?action=new${filterQuery ? `&${filterQuery}` : ""}`}>
                 <Plus className="h-4 w-4" />
                 Thêm sản phẩm
               </Link>
@@ -225,6 +232,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                         <ProductActions
                           productId={product.id}
                           isActive={product.isActive}
+                          filterQuery={filterQuery}
                         />
                       </td>
                     </tr>
@@ -251,7 +259,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               </p>
               {!hasFilters && (
                 <Button asChild>
-                  <Link href="/admin/products?action=new">
+                  <Link href={`/admin/products?action=new${filterQuery ? `&${filterQuery}` : ""}`}>
                     <Plus className="mr-2 h-4 w-4" />
                     Thêm sản phẩm
                   </Link>
