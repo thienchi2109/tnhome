@@ -81,7 +81,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           href="/"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="w-4 h-4 mr-1" /> Back to Products
+          <ArrowLeft className="w-4 h-4 mr-1" /> Quay lại danh sách
         </Link>
       </div>
 
@@ -152,7 +152,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center bg-neutral-200">
-                    <span className="text-muted-foreground">No image</span>
+                    <span className="text-muted-foreground">Chưa có ảnh</span>
                   </div>
                 )}
                 {isOutOfStock && (
@@ -258,7 +258,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                 </Button>
               </div>
               <p className="text-xs text-center text-muted-foreground">
-                Free shipping on orders over 1.000.000₫
+                Miễn phí vận chuyển cho đơn hàng trên 1.000.000₫
               </p>
             </div>
           </div>

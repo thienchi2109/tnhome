@@ -25,9 +25,10 @@ import { toast } from "sonner";
 interface ProductActionsProps {
   productId: string;
   isActive: boolean;
+  filterQuery?: string;
 }
 
-export function ProductActions({ productId, isActive }: ProductActionsProps) {
+export function ProductActions({ productId, isActive, filterQuery }: ProductActionsProps) {
   const [isPending, startTransition] = useTransition();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -65,7 +66,7 @@ export function ProductActions({ productId, isActive }: ProductActionsProps) {
               className="h-8 w-8"
               asChild
             >
-              <Link href={`/admin/products?edit=${productId}`}>
+              <Link href={`/admin/products?edit=${productId}${filterQuery ? `&${filterQuery}` : ""}`}>
                 <Pencil className="h-4 w-4" />
                 <span className="sr-only">Chỉnh sửa</span>
               </Link>

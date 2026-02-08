@@ -22,7 +22,10 @@ export function ProductCard({ id, name, price, image, images, category, stock }:
   const isOutOfStock = stock !== undefined && stock <= 0;
 
   return (
-    <Link href={`/product/${id}`} className="group flex flex-col gap-4">
+    <Link
+      href={`/product/${id}`}
+      className="group flex flex-col h-full overflow-hidden rounded-xl border border-transparent bg-card text-card-foreground shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/10"
+    >
       <div className="aspect-[3/4] relative overflow-hidden bg-muted/30">
         {imageList.length > 0 ? (
           <>
@@ -32,7 +35,7 @@ export function ProductCard({ id, name, price, image, images, category, stock }:
               alt={name}
               fill
               className={cn(
-                "object-cover transition-transform duration-500 ease-out group-hover:scale-105",
+                "object-cover transition-transform duration-700 ease-out group-hover:scale-110",
                 "motion-reduce:transition-none"
               )}
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
@@ -63,9 +66,9 @@ export function ProductCard({ id, name, price, image, images, category, stock }:
         {/* Out of Stock Overlay */}
         {isOutOfStock && (
           <>
-            <div className="absolute inset-0 bg-white/60 z-10" />
+            <div className="absolute inset-0 bg-white/60 z-10 backdrop-blur-[1px]" />
             <div className="absolute top-3 left-3 z-20">
-              <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-0">
+              <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/20 border-0 uppercase tracking-wider font-semibold">
                 Hết hàng
               </Badge>
             </div>
@@ -73,17 +76,17 @@ export function ProductCard({ id, name, price, image, images, category, stock }:
         )}
       </div>
 
-      <div className="space-y-1">
-        <h3 className="heading-product text-foreground group-hover:underline decoration-1 underline-offset-4 transition-all">
+      <div className="flex flex-col gap-3 p-5">
+        <h3 className="font-heading font-medium text-base leading-snug group-hover:text-primary transition-colors line-clamp-2 min-h-[3rem]">
           {name}
         </h3>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto pt-2 border-t border-dashed border-border/50">
           {category && (
-            <p className="text-caption">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider line-clamp-1 bg-muted px-2 py-0.5 rounded-sm">
               {category}
             </p>
           )}
-          <span className="text-sm font-medium text-foreground">{formatPrice(price)}</span>
+          <span className="font-bold text-lg text-primary tracking-tight">{formatPrice(price)}</span>
         </div>
       </div>
     </Link>

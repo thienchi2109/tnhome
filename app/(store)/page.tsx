@@ -22,22 +22,27 @@ export default async function HomePage() {
   return (
     <main className="flex flex-col pb-16">
       {/* Section 1: Editorial Tagline */}
-      <section className="pt-8 md:pt-12 pb-6 md:pb-8 px-6">
-        <div className="mx-auto max-w-[1400px]">
-          <h1 className="heading-hero text-foreground max-w-3xl">
-            Sản Phẩm Gia Dụng
-            <br />
-            Cho Cuộc Sống Hiện Đại.
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground max-w-lg">
-            Chất lượng gặp thiết kế tối giản. Khám phá bộ sưu tập được chọn
-            lọc cho ngôi nhà của bạn.
-          </p>
+      <section className="relative pt-12 md:pt-24 pb-12 md:pb-20 px-6 overflow-hidden">
+        {/* Background Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-muted/50 via-background to-background -z-10" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-50" />
+
+        <div className="mx-auto max-w-[1400px] text-center md:text-left">
+          <div className="max-w-4xl mx-auto md:mx-0">
+            <h1 className="heading-hero text-foreground tracking-tight text-balance animate-in fade-in slide-in-from-bottom-4 duration-1000 fill-mode-forwards">
+              Sản Phẩm Gia Dụng <br className="hidden md:block" />
+              <span className="text-muted-foreground/80">Cho Cuộc Sống Hiện Đại.</span>
+            </h1>
+            <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl text-balance animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200 fill-mode-forwards md:leading-relaxed">
+              Sự kết hợp hoàn hảo giữa chất lượng bền bỉ và thiết kế tối giản.
+              Khám phá bộ sưu tập được tuyển chọn riêng cho ngôi nhà của bạn.
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* Section 2: Category Pills */}
-      <section className="pb-6">
+      {/* Section 2: Category Pills — hidden below xl, redundant with sidebar/navbar */}
+      <section className="hidden xl:block pb-6">
         <CategoryPills categories={categoriesWithSlugs} />
       </section>
 
@@ -85,9 +90,9 @@ export default async function HomePage() {
       {/* Section 4: Category Spotlight */}
       <section className="py-12 md:py-16">
         <CategorySpotlight
-          title="Bộ Sưu Tập Nhà Bếp"
+          title="Bộ Sưu Tập Đồ Dùng Bếp"
           subtitle="Được thiết kế cho cả công năng và vẻ đẹp. Nâng tầm không gian bếp của bạn."
-          href="/products?category=nha-bep"
+          href="/products?category=do-dung-bep"
           ctaText="Khám Phá"
           imageSrc="/kitchen-collection.png"
           imageAlt="Bộ sưu tập nhà bếp cao cấp"

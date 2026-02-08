@@ -1,6 +1,9 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { AdminHeader } from "@/components/admin/admin-header";
+import { AdminProductFilters } from "@/components/admin/admin-product-filters";
 import { getProducts, getAllCategories } from "@/lib/actions";
+import { isUnauthorizedError } from "@/lib/actions/errors";
 import { normalizePaginationParams } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
 import { Plus, Upload, Download } from "lucide-react";
@@ -22,6 +25,9 @@ interface ProductsPageProps {
     pageSize?: string;
     action?: string;
     edit?: string;
+    q?: string;
+    category?: string;
+    status?: string;
   }>;
 }
 
@@ -32,11 +38,31 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   // Normalize pagination params with validation
   const paginationParams = normalizePaginationParams(params.page, params.pageSize);
 
+  // Extract and sanitize filter values
+  const filterCategories = params.category
+    ? params.category.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 20)
+    : undefined;
+  const filterOptions = {
+    search: params.q?.trim().slice(0, 100) || undefined,
+    categories: filterCategories && filterCategories.length > 0 ? filterCategories : undefined,
+    status: (params.status === "active" || params.status === "inactive")
+      ? (params.status as "active" | "inactive")
+      : undefined,
+  };
+
   // Fetch products and categories in parallel
-  const [{ products, pagination }, categories] = await Promise.all([
-    getProducts(paginationParams),
-    getAllCategories(),
-  ]);
+  let products, pagination, categories;
+  try {
+    [{ products, pagination }, categories] = await Promise.all([
+      getProducts(paginationParams, filterOptions),
+      getAllCategories(),
+    ]);
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      redirect("/?error=unauthorized");
+    }
+    throw error;
+  }
 
   // Calculate display range
   const startItem =
@@ -47,6 +73,15 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     pagination.page * pagination.pageSize,
     pagination.totalItems
   );
+
+  const hasFilters = !!(params.q || params.category || params.status);
+
+  // Build filter query string to preserve filters in action links
+  const filterParams = new URLSearchParams();
+  if (params.q) filterParams.set("q", params.q);
+  if (params.category) filterParams.set("category", params.category);
+  if (params.status) filterParams.set("status", params.status);
+  const filterQuery = filterParams.toString();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -77,19 +112,24 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               </a>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/admin/products?action=import">
+              <Link href={`/admin/products?action=import${filterQuery ? `&${filterQuery}` : ""}`}>
                 <Upload className="mr-1.5 h-4 w-4" />
                 Nhập Excel
               </Link>
             </Button>
             <Button asChild className="gap-2">
-              <Link href="/admin/products?action=new">
+              <Link href={`/admin/products?action=new${filterQuery ? `&${filterQuery}` : ""}`}>
                 <Plus className="h-4 w-4" />
                 Thêm sản phẩm
               </Link>
             </Button>
           </div>
         </div>
+
+        {/* Filter Toolbar */}
+        <Suspense fallback={null}>
+          <AdminProductFilters categories={categories} />
+        </Suspense>
 
         {/* Products Grid/Table */}
         {products.length > 0 ? (
@@ -192,6 +232,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                         <ProductActions
                           productId={product.id}
                           isActive={product.isActive}
+                          filterQuery={filterQuery}
                         />
                       </td>
                     </tr>
@@ -207,17 +248,23 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                 <Plus className="h-8 w-8 text-muted-foreground" />
               </div>
               <h3 className="mb-1 font-semibold text-foreground">
-                Chưa có sản phẩm nào
+                {hasFilters
+                  ? "Không tìm thấy sản phẩm"
+                  : "Chưa có sản phẩm nào"}
               </h3>
               <p className="mb-4 text-sm text-muted-foreground">
-                Bắt đầu bằng việc tạo sản phẩm đầu tiên của bạn.
+                {hasFilters
+                  ? "Thử xóa bộ lọc để xem tất cả sản phẩm."
+                  : "Bắt đầu bằng việc tạo sản phẩm đầu tiên của bạn."}
               </p>
-              <Button asChild>
-                <Link href="/admin/products?action=new">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Thêm sản phẩm
-                </Link>
-              </Button>
+              {!hasFilters && (
+                <Button asChild>
+                  <Link href={`/admin/products?action=new${filterQuery ? `&${filterQuery}` : ""}`}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Thêm sản phẩm
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         )}
