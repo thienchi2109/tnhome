@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -155,16 +156,20 @@ export function AdminProductFilters({ categories }: AdminProductFiltersProps) {
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuContent align="start" className="w-56 max-h-72 overflow-y-auto">
           {categories.map((cat) => (
-            <DropdownMenuCheckboxItem
+            <DropdownMenuItem
               key={cat}
-              checked={currentCategories.includes(cat)}
-              onCheckedChange={() => toggleCategory(cat)}
               onSelect={(e) => e.preventDefault()}
+              onClick={() => toggleCategory(cat)}
+              className="gap-2 cursor-pointer"
             >
+              <Checkbox
+                checked={currentCategories.includes(cat)}
+                className="pointer-events-none"
+              />
               {cat}
-            </DropdownMenuCheckboxItem>
+            </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
