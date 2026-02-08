@@ -49,12 +49,16 @@ export function OrderActions({ orderId, currentStatus }: OrderActionsProps) {
 
   const handleStatusUpdate = (newStatus: OrderStatus) => {
     startTransition(async () => {
-      const result = await updateOrderStatus(orderId, newStatus);
-      if (result.success) {
-        toast.success("Cập nhật trạng thái thành công");
-        queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
-      } else {
-        toast.error(result.error);
+      try {
+        const result = await updateOrderStatus(orderId, newStatus);
+        if (result.success) {
+          toast.success("Cập nhật trạng thái thành công");
+          queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+        } else {
+          toast.error(result.error);
+        }
+      } catch {
+        toast.error("Không thể cập nhật trạng thái đơn hàng");
       }
     });
   };

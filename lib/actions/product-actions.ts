@@ -68,6 +68,9 @@ export async function createProduct(
 
     return { success: true, data: { id: product.id } };
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return { success: false, error: "Unauthorized" };
+    }
     if (error instanceof z.ZodError) {
       return { success: false, error: error.issues[0].message };
     }
@@ -109,6 +112,9 @@ export async function updateProduct(
 
     return { success: true, data: { id: product.id } };
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return { success: false, error: "Unauthorized" };
+    }
     if (error instanceof z.ZodError) {
       return { success: false, error: error.issues[0].message };
     }
@@ -132,6 +138,9 @@ export async function deleteProduct(id: string): Promise<ActionResult<null>> {
 
     return { success: true, data: null };
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return { success: false, error: "Unauthorized" };
+    }
     console.error("Failed to delete product:", error);
     return { success: false, error: "Failed to delete product" };
   }
@@ -156,6 +165,9 @@ export async function toggleProductStatus(
 
     return { success: true, data: null };
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return { success: false, error: "Unauthorized" };
+    }
     console.error("Failed to toggle product status:", error);
     return { success: false, error: "Failed to update product status" };
   }

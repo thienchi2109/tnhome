@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrders } from "@/lib/actions/order-actions";
-import { requireAdmin } from "@/lib/actions/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    await requireAdmin();
-
     const { searchParams } = request.nextUrl;
 
     const pageParam = searchParams.get("page");

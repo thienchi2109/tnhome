@@ -320,6 +320,8 @@ export async function getOrders(
   params?: { page?: number; pageSize?: number },
   filters?: { status?: string; search?: string }
 ) {
+  await requireAdmin();
+
   const page = params?.page ?? 1;
   const pageSize = params?.pageSize ?? 20;
   const skip = (page - 1) * pageSize;
