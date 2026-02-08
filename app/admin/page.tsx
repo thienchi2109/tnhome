@@ -103,7 +103,7 @@ export default async function AdminDashboardPage() {
         description="Chào mừng trở lại! Đây là tình hình hoạt động của cửa hàng bạn."
       />
 
-      <main className="flex-1 p-6 space-y-8">
+      <main className="flex-1 p-4 xl:p-6 space-y-8">
         {/* Stats Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {statCards.map((card) => {
@@ -155,7 +155,7 @@ export default async function AdminDashboardPage() {
                   </p>
 
                   {/* Value */}
-                  <p className="text-3xl font-semibold tracking-tight text-foreground">
+                  <p className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
                     {typeof card.value === "number"
                       ? card.value.toLocaleString()
                       : card.value}
