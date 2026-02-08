@@ -1,5 +1,3 @@
-$ErrorActionPreference = "Stop"
-
 param(
   [string]$Service = "postgres",
   [string]$DbUser = "postgres",
@@ -7,6 +5,8 @@ param(
   [switch]$SkipHardening,
   [switch]$SkipVerify
 )
+
+$ErrorActionPreference = "Stop"
 
 $scriptDir = Split-Path -Parent $PSCommandPath
 $repoRoot = Resolve-Path (Join-Path $scriptDir "..")
