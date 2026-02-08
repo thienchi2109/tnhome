@@ -360,6 +360,9 @@ export async function getOrders(
     ];
   }
 
+  // TODO: RepeatableRead can cause P2034 serialization failures under concurrent
+  // writes. Low risk at current traffic, but add retry wrapper if 500s appear
+  // under load. See also product-actions.ts paginatedProductQuery.
   const result = await prisma.$transaction(
     async (tx) => {
       const totalItems = await tx.order.count({ where });

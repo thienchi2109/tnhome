@@ -46,6 +46,9 @@ function normalizePagination(params?: PaginationParams): { page: number; pageSiz
   };
 }
 
+// TODO: RepeatableRead can cause P2034 serialization failures under concurrent
+// writes. Low risk at current traffic, but if storefront 500s appear under load,
+// add a single-retry wrapper here. See also order-actions.ts:363.
 async function paginatedProductQuery(
   rawPage: number,
   pageSize: number,
