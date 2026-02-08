@@ -380,20 +380,12 @@ export async function updateOrderStatus(
     await requireAdmin();
 
     await prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUnique({
-        where: { id: orderId },
-        select: {
-          id: true,
-          status: true,
-          items: {
-            select: {
-              productId: true,
-              quantity: true,
-            },
-          },
-        },
-      });
+      // Lock the order row to prevent concurrent status changes
+      const rows = await tx.$queryRaw<
+        Array<{ id: string; status: string }>
+      >`SELECT id, status FROM "Order" WHERE id = ${orderId} FOR UPDATE`;
 
+      const order = rows[0];
       if (!order) {
         throw new Error("NOT_FOUND");
       }
@@ -406,7 +398,11 @@ export async function updateOrderStatus(
 
       // If cancelling, restore stock
       if (newStatus === "CANCELLED") {
-        for (const item of order.items) {
+        const items = await tx.orderItem.findMany({
+          where: { orderId },
+          select: { productId: true, quantity: true },
+        });
+        for (const item of items) {
           await tx.product.update({
             where: { id: item.productId },
             data: { stock: { increment: item.quantity } },

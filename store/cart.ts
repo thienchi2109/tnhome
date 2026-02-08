@@ -37,9 +37,10 @@ export const useCartStore = create<CartStore>()(
         const existingItem = items.find((i) => i.id === item.id);
 
         if (existingItem) {
-          // Don't exceed available stock
-          const newQty = Math.min(existingItem.quantity + addQty, stock);
-          if (newQty <= existingItem.quantity) return;
+          // Clamp existing quantity to current stock, then try to add more
+          const clampedExisting = Math.min(existingItem.quantity, stock);
+          const newQty = Math.min(clampedExisting + addQty, stock);
+          if (newQty === existingItem.quantity && stock === existingItem.stock) return;
           set({
             items: items.map((i) =>
               i.id === item.id ? { ...i, quantity: newQty, stock } : i

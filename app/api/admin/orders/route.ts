@@ -10,8 +10,21 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = request.nextUrl;
 
-    const page = Math.max(1, Number(searchParams.get("page") || "1"));
-    const pageSize = Math.min(Math.max(1, Number(searchParams.get("pageSize") || "20")), 100);
+    const pageParam = searchParams.get("page");
+    const parsedPage =
+      pageParam === null || pageParam.trim() === "" ? NaN : Number(pageParam);
+    const page = Number.isFinite(parsedPage)
+      ? Math.max(1, Math.floor(parsedPage))
+      : 1;
+
+    const pageSizeParam = searchParams.get("pageSize");
+    const parsedPageSize =
+      pageSizeParam === null || pageSizeParam.trim() === ""
+        ? NaN
+        : Number(pageSizeParam);
+    const pageSize = Number.isFinite(parsedPageSize)
+      ? Math.min(Math.max(1, Math.floor(parsedPageSize)), 100)
+      : 20;
     const status = searchParams.get("status") || undefined;
     const search = searchParams.get("search") || undefined;
 

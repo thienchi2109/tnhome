@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,27 +9,24 @@ export function OrderSearch() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [value, setValue] = useState(searchParams.get("search") || "");
+  const isUserInput = useRef(false);
 
-  const pushSearch = useCallback(
-    (search: string) => {
+  useEffect(() => {
+    if (!isUserInput.current) return;
+
+    const timer = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());
-      if (search) {
-        params.set("search", search);
+      if (value) {
+        params.set("search", value);
       } else {
         params.delete("search");
       }
       params.delete("page");
       router.push(`/admin/orders?${params.toString()}`);
-    },
-    [router, searchParams]
-  );
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      pushSearch(value);
+      isUserInput.current = false;
     }, 400);
     return () => clearTimeout(timer);
-  }, [value, pushSearch]);
+  }, [value, router, searchParams]);
 
   return (
     <div className="relative w-full sm:max-w-xs">
@@ -37,7 +34,10 @@ export function OrderSearch() {
       <Input
         placeholder="Tìm đơn hàng..."
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => {
+          isUserInput.current = true;
+          setValue(e.target.value);
+        }}
         className="pl-9"
       />
     </div>
