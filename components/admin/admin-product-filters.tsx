@@ -79,12 +79,14 @@ export function AdminProductFilters({ categories }: AdminProductFiltersProps) {
 
   const clearSearch = () => {
     setSearchValue("");
-    handleSearch("");
+    handleSearch.cancel();
+    updateParams({ q: null });
     inputRef.current?.focus();
   };
 
   const clearAllFilters = () => {
     setSearchValue("");
+    handleSearch.cancel();
     startTransition(() => {
       router.push(pathname, { scroll: false });
     });
@@ -156,7 +158,7 @@ export function AdminProductFilters({ categories }: AdminProductFiltersProps) {
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56 max-h-72 overflow-y-auto">
+        <DropdownMenuContent align="start" className="w-56 max-h-108 overflow-y-auto">
           {categories.map((cat) => (
             <DropdownMenuItem
               key={cat}

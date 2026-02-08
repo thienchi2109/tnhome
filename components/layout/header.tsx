@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ShoppingBag, Search, Menu, User, Settings, ChevronDown, LogIn, UserPlus } from "lucide-react";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useCartStore } from "@/store/cart";
@@ -47,271 +46,276 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
     { name: "Sản phẩm mới", href: "/products?sort=newest", highlight: true },
   ];
 
+  const regularCategories = categories.filter((c) => !c.highlight);
+  const highlightedCategories = categories.filter((c) => c.highlight);
+
   return (
-    <TooltipProvider delayDuration={100}>
-      <header className="flex flex-col w-full bg-background relative z-50">
+    <header className="flex flex-col w-full bg-background relative z-50">
 
 
-        {/* Main Header */}
-        <div className="w-full border-b bg-background py-4">
-          <div className="mx-auto flex items-center justify-between gap-4 md:gap-8 px-4 md:px-6 max-w-[1400px]">
-            {/* Mobile Menu & Logo */}
-            <div className="flex items-center gap-3 md:gap-8 shrink-0">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="lg:hidden h-10 w-10 -ml-2">
-                    <Menu className="h-6 w-6" />
-                    <span className="sr-only">Menu</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[300px] overflow-y-auto">
-                  <SheetHeader>
-                    <SheetTitle className="text-left">
-                      <Link href="/" className="flex items-center gap-2">
-                        <div className="relative h-8 w-8 overflow-hidden rounded-sm">
-                          <Image
-                            src="/app-logo.png"
-                            alt="TN Home"
-                            fill
-                            className="object-contain"
-                          />
-                        </div>
-                        <span className="font-bold text-lg text-primary">TN Home</span>
-                      </Link>
-                    </SheetTitle>
-                  </SheetHeader>
-                  <div className="flex flex-col gap-6 py-6">
-                    <div className="flex flex-col gap-1">
-                      <h3 className="text-sm font-medium text-muted-foreground px-2 pb-2">Danh mục</h3>
-                      <nav className="flex flex-col gap-1">
-                        {categories.map((category) => (
-                          <Link
-                            key={category.name}
-                            href={category.href}
-                            className={`px-2 py-2 text-sm font-medium rounded-md transition-colors ${category.highlight
-                              ? "text-primary bg-primary/5 hover:bg-primary/10"
-                              : "text-foreground hover:bg-muted"
-                              }`}
-                          >
-                            {category.name}
-                          </Link>
-                        ))}
-                      </nav>
-                    </div>
-
-                    <div className="border-t pt-6">
-                      <h3 className="text-sm font-medium text-muted-foreground px-2 pb-2">Tài khoản</h3>
-                      <div className={mounted ? undefined : "invisible"}>
-                        <SignedOut>
-                          <div className="grid gap-2 px-2">
-                            <Button asChild variant="outline" className="justify-start gap-2 w-full">
-                              <Link href="/sign-in">
-                                <LogIn className="h-4 w-4" />
-                                Đăng nhập
-                              </Link>
-                            </Button>
-                            <Button asChild className="justify-start gap-2 w-full">
-                              <Link href="/sign-up">
-                                <UserPlus className="h-4 w-4" />
-                                Đăng ký
-                              </Link>
-                            </Button>
-                          </div>
-                        </SignedOut>
-                        <SignedIn>
-                          <div className="flex flex-col gap-2 px-2">
-                            <Link href="/admin" className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors">
-                              <Settings className="h-4 w-4" />
-                              Quản trị viên
-                            </Link>
-                          </div>
-                        </SignedIn>
-                      </div>
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
-
-              <Link href="/" className="flex items-center gap-2 group shrink-0">
-                <div className="relative h-20 w-20 md:h-24 md:w-24 overflow-hidden rounded-lg">
-                  <Image
-                    src="/app-logo.png"
-                    alt="TN Home"
-                    fill
-                    className="object-contain"
-                    sizes="(max-width: 768px) 80px, 96px"
-                    priority
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-3xl md:text-4xl font-black tracking-tight text-primary leading-none">
-                    TN Home
-                  </span>
-                  <span className="text-xs md:text-sm font-medium text-muted-foreground leading-none tracking-widest uppercase">
-                    Gia dụng và Nội thất
-                  </span>
-                </div>
-              </Link>
-            </div>
-
-            {/* Search Bar - Centered & Prominent */}
-            <div className="hidden lg:flex flex-1 max-w-2xl mx-auto">
-              <HeaderSearchInput variant="desktop" placeholder="Tìm kiếm sản phẩm..." />
-            </div>
-
-            {/* Mobile Search Icon Only */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden ml-auto"
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-            >
-              <Search className="h-6 w-6" />
-            </Button>
-
-            {/* Actions */}
-            <div className="flex items-center gap-1 md:gap-4 shrink-0">
-              <div className="hidden md:flex items-center gap-2 border-r border-border pr-4 mr-1">
-                <div className={mounted ? "flex items-center gap-2" : "invisible flex items-center gap-2"}>
-                  <SignedOut>
-                    <Link href="/sign-in" className="flex items-center gap-2 hover:text-primary transition-colors text-sm font-medium">
-                      <User className="h-5 w-5" />
-                      <span>Đăng nhập</span>
-                    </Link>
-                    <span className="text-muted-foreground">/</span>
-                    <Link href="/sign-up" className="hover:text-primary transition-colors text-sm font-medium">
-                      Đăng ký
-                    </Link>
-                  </SignedOut>
-
-                  <SignedIn>
-                    <Link href="/admin" className="flex items-center gap-2 hover:text-primary transition-colors text-sm font-medium" title="Quản trị viên">
-                      <Settings className="h-5 w-5" />
-                    </Link>
-                    <div className="pl-2">
-                      <UserButton afterSignOutUrl="/" />
-                    </div>
-                  </SignedIn>
-                </div>
-              </div>
-
-              {/* Cart */}
-              <div className="flex items-center">
-                <Button
-                  variant="ghost"
-                  className="relative flex items-center gap-2 md:px-4 h-11 rounded-full hover:bg-primary/5 group"
-                  onClick={openCart}
-                >
-                  <div className="relative">
-                    <ShoppingBag className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
-                    {itemCount > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white ring-2 ring-background">
-                        {itemCount > 99 ? "99+" : itemCount}
-                      </span>
-                    )}
-                  </div>
-                  <div className="hidden md:flex flex-col items-start gap-0.5 text-xs">
-                    <span className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">
-                      Giỏ hàng
-                    </span>
-                  </div>
+      {/* Main Header */}
+      <div className="w-full border-b bg-background py-4">
+        <div className="mx-auto flex items-center justify-between gap-4 md:gap-8 px-4 md:px-6 max-w-[1400px]">
+          {/* Mobile Menu & Logo */}
+          <div className="flex items-center gap-3 md:gap-8 shrink-0">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden h-10 w-10 -ml-2">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Menu</span>
                 </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Search Expanded */}
-          {isSearchOpen && (
-            <div className="lg:hidden border-t px-4 py-3 bg-background animate-in slide-in-from-top-1 duration-200">
-              <HeaderSearchInput
-                variant="mobile"
-                autoFocus
-                placeholder="Tìm kiếm..."
-                onSearchSubmit={() => setIsSearchOpen(false)}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Categories Navigation - Sticky */}
-        <div className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b shadow-sm">
-          <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-2 px-4 md:px-6 overflow-x-auto scrollbar-hide">
-
-            {/* All Categories Dropdown Trigger Design */}
-            <Button className="shrink-0 gap-2 rounded-full hidden md:flex" size="sm">
-              <Menu className="h-4 w-4" />
-              <span>Danh mục</span>
-            </Button>
-
-            <div className="h-6 w-px bg-border mx-2 hidden md:block" />
-
-            <nav className="flex items-center gap-1 md:gap-2 pr-4 md:pr-0 w-full md:w-auto">
-              {/* Mobile View: Scrollable list of ALL categories */}
-              <div className="flex md:hidden items-center gap-1 w-full">
-                {categories.map((category) => (
-                  <Link
-                    key={category.name}
-                    href={category.href}
-                    className={`
-                      whitespace-nowrap px-3 py-1.5 text-sm font-medium rounded-full transition-all border border-transparent shrink-0
-                      ${category.highlight
-                        ? "text-primary bg-primary/5 hover:bg-primary/10 border-primary/20"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                      }
-                    `}
-                  >
-                    {category.name}
-                  </Link>
-                ))}
-              </div>
-
-              {/* Desktop View: Top 5 + Dropdown */}
-              <div className="hidden md:flex items-center gap-2">
-                {categories.slice(0, 5).map((category) => (
-                  <Link
-                    key={category.name}
-                    href={category.href}
-                    className={`
-                      whitespace-nowrap px-3 py-1.5 text-sm font-medium rounded-full transition-all border border-transparent shrink-0
-                      ${category.highlight
-                        ? "text-primary bg-primary/5 hover:bg-primary/10 border-primary/20"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                      }
-                    `}
-                  >
-                    {category.name}
-                  </Link>
-                ))}
-
-                {categories.length > 5 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="rounded-full gap-1 px-3 text-muted-foreground hover:text-foreground">
-                        Xem thêm <ChevronDown className="h-3 w-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-56 max-h-[60vh] overflow-y-auto">
-                      {categories.slice(5).map((category) => (
-                        <DropdownMenuItem key={category.name} asChild>
-                          <Link href={category.href} className="w-full cursor-pointer">
-                            {category.name}
-                          </Link>
-                        </DropdownMenuItem>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[300px] overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle className="text-left">
+                    <Link href="/" className="flex items-center gap-2">
+                      <div className="relative h-8 w-8 overflow-hidden rounded-sm">
+                        <Image
+                          src="/app-logo.png"
+                          alt="TN Home"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                      <span className="font-bold text-lg text-primary">TN Home</span>
+                    </Link>
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col gap-6 py-6">
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-sm font-medium text-muted-foreground px-2 pb-2">Danh mục</h3>
+                    <nav className="flex flex-col gap-1">
+                      {categories.map((category) => (
+                        <Link
+                          key={category.name}
+                          href={category.href}
+                          className={`px-2 py-2 text-sm font-medium rounded-md transition-colors ${category.highlight
+                            ? "text-primary bg-primary/5 hover:bg-primary/10"
+                            : "text-foreground hover:bg-muted"
+                            }`}
+                        >
+                          {category.name}
+                        </Link>
                       ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
-            </nav>
+                    </nav>
+                  </div>
 
-            <div className="ml-auto shrink-0 hidden lg:block">
-              <Link href="/products" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
-                Xem tất cả <ChevronDown className="h-4 w-4 -rotate-90" />
-              </Link>
+                  <div className="border-t pt-6">
+                    <h3 className="text-sm font-medium text-muted-foreground px-2 pb-2">Tài khoản</h3>
+                    <div className={mounted ? undefined : "invisible"}>
+                      <SignedOut>
+                        <div className="grid gap-2 px-2">
+                          <Button asChild variant="outline" className="justify-start gap-2 w-full">
+                            <Link href="/sign-in">
+                              <LogIn className="h-4 w-4" />
+                              Đăng nhập
+                            </Link>
+                          </Button>
+                          <Button asChild className="justify-start gap-2 w-full">
+                            <Link href="/sign-up">
+                              <UserPlus className="h-4 w-4" />
+                              Đăng ký
+                            </Link>
+                          </Button>
+                        </div>
+                      </SignedOut>
+                      <SignedIn>
+                        <div className="flex flex-col gap-2 px-2">
+                          <Link href="/admin" className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors">
+                            <Settings className="h-4 w-4" />
+                            Quản trị viên
+                          </Link>
+                        </div>
+                      </SignedIn>
+                    </div>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            <Link href="/" className="flex items-center gap-2 group shrink-0">
+              <div className="relative h-20 w-20 md:h-24 md:w-24 overflow-hidden rounded-lg">
+                <Image
+                  src="/app-logo.png"
+                  alt="TN Home"
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 80px, 96px"
+                  priority
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-3xl md:text-4xl font-black tracking-tight text-primary leading-none">
+                  TN Home
+                </span>
+                <span className="text-xs md:text-sm font-medium text-muted-foreground leading-none tracking-widest uppercase">
+                  Gia dụng và Nội thất
+                </span>
+              </div>
+            </Link>
+          </div>
+
+          {/* Search Bar - Centered & Prominent */}
+          <div className="hidden lg:flex flex-1 max-w-2xl mx-auto">
+            <HeaderSearchInput variant="desktop" placeholder="Tìm kiếm sản phẩm..." />
+          </div>
+
+          {/* Mobile Search Icon Only */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden ml-auto"
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
+          >
+            <Search className="h-6 w-6" />
+          </Button>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1 md:gap-4 shrink-0">
+            <div className="hidden md:flex items-center gap-2 border-r border-border pr-4 mr-1">
+              <div className={mounted ? "flex items-center gap-2" : "invisible flex items-center gap-2"}>
+                <SignedOut>
+                  <Link href="/sign-in" className="flex items-center gap-2 hover:text-primary transition-colors text-sm font-medium">
+                    <User className="h-5 w-5" />
+                    <span>Đăng nhập</span>
+                  </Link>
+                  <span className="text-muted-foreground">/</span>
+                  <Link href="/sign-up" className="hover:text-primary transition-colors text-sm font-medium">
+                    Đăng ký
+                  </Link>
+                </SignedOut>
+
+                <SignedIn>
+                  <Link href="/admin" className="flex items-center gap-2 hover:text-primary transition-colors text-sm font-medium" title="Quản trị viên">
+                    <Settings className="h-5 w-5" />
+                  </Link>
+                  <div className="pl-2">
+                    <UserButton afterSignOutUrl="/" />
+                  </div>
+                </SignedIn>
+              </div>
+            </div>
+
+            {/* Cart */}
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                className="relative flex items-center gap-2 md:px-4 h-11 rounded-full hover:bg-primary/5 group"
+                onClick={openCart}
+              >
+                <div className="relative">
+                  <ShoppingBag className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
+                  {itemCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white ring-2 ring-background">
+                      {itemCount > 99 ? "99+" : itemCount}
+                    </span>
+                  )}
+                </div>
+                <div className="hidden md:flex flex-col items-start gap-0.5 text-xs">
+                  <span className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">
+                    Giỏ hàng
+                  </span>
+                </div>
+              </Button>
             </div>
           </div>
         </div>
-      </header>
-    </TooltipProvider>
+
+        {/* Mobile Search Expanded */}
+        {isSearchOpen && (
+          <div className="lg:hidden border-t px-4 py-3 bg-background animate-in slide-in-from-top-1 duration-200">
+            <HeaderSearchInput
+              variant="mobile"
+              autoFocus
+              placeholder="Tìm kiếm..."
+              onSearchSubmit={() => setIsSearchOpen(false)}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Categories Navigation - Sticky */}
+      <div className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b shadow-sm">
+        <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-2 px-4 md:px-6 overflow-x-auto scrollbar-hide">
+
+          {/* All Categories Dropdown Trigger Design */}
+          <Button className="shrink-0 gap-2 rounded-full hidden md:flex" size="sm">
+            <Menu className="h-4 w-4" />
+            <span>Danh mục</span>
+          </Button>
+
+          <div className="h-6 w-px bg-border mx-2 hidden md:block" />
+
+          <nav className="flex items-center gap-1 md:gap-2 pr-4 md:pr-0 w-full md:w-auto">
+            {/* Mobile View: Scrollable list of ALL categories */}
+            <div className="flex md:hidden items-center gap-1 w-full">
+              {categories.map((category) => (
+                <Link
+                  key={category.name}
+                  href={category.href}
+                  className={`
+                      whitespace-nowrap px-3 py-1.5 text-sm font-medium rounded-full transition-all border border-transparent shrink-0
+                      ${category.highlight
+                      ? "text-primary bg-primary/5 hover:bg-primary/10 border-primary/20"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }
+                    `}
+                >
+                  {category.name}
+                </Link>
+              ))}
+            </div>
+
+            {/* Desktop View: Top 5 Regular + Dropdown + Highlighted */}
+            <div className="hidden md:flex items-center gap-2">
+              {regularCategories.slice(0, 5).map((category) => (
+                <Link
+                  key={category.name}
+                  href={category.href}
+                  className="whitespace-nowrap px-3 py-1.5 text-sm font-medium rounded-full transition-all border border-transparent shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+                >
+                  {category.name}
+                </Link>
+              ))}
+
+              {regularCategories.length > 5 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="rounded-full gap-1 px-3 text-muted-foreground hover:text-foreground">
+                      Xem thêm <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56 max-h-[60vh] overflow-y-auto">
+                    {regularCategories.slice(5).map((category) => (
+                      <DropdownMenuItem key={category.name} asChild>
+                        <Link href={category.href} className="w-full cursor-pointer">
+                          {category.name}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+
+              {highlightedCategories.map((category) => (
+                <Link
+                  key={category.name}
+                  href={category.href}
+                  className="whitespace-nowrap px-3 py-1.5 text-sm font-medium rounded-full transition-all border border-transparent shrink-0 text-primary bg-primary/5 hover:bg-primary/10 border-primary/20"
+                >
+                  {category.name}
+                </Link>
+              ))}
+            </div>
+          </nav>
+
+          <div className="ml-auto shrink-0 hidden lg:block">
+            <Link href="/products" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
+              Xem tất cả <ChevronDown className="h-4 w-4 -rotate-90" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </header>
   );
 }
