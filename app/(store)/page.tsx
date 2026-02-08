@@ -22,15 +22,22 @@ export default async function HomePage() {
   return (
     <main className="flex flex-col pb-16">
       {/* Section 1: Editorial Tagline */}
-      <section className="pt-8 md:pt-16 pb-8 md:pb-12 px-6">
-        <div className="mx-auto max-w-[1400px]">
-          <h1 className="heading-hero text-foreground max-w-4xl text-balance">
-            Sản Phẩm Gia Dụng Cho Cuộc Sống Hiện Đại.
-          </h1>
-          <p className="mt-4 md:mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl text-balance">
-            Chất lượng gặp thiết kế tối giản. Khám phá bộ sưu tập được chọn
-            lọc cho ngôi nhà của bạn.
-          </p>
+      <section className="relative pt-12 md:pt-24 pb-12 md:pb-20 px-6 overflow-hidden">
+        {/* Background Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-muted/50 via-background to-background -z-10" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-50" />
+
+        <div className="mx-auto max-w-[1400px] text-center md:text-left">
+          <div className="max-w-4xl mx-auto md:mx-0">
+            <h1 className="heading-hero text-foreground tracking-tight text-balance animate-in fade-in slide-in-from-bottom-4 duration-1000 fill-mode-forwards">
+              Sản Phẩm Gia Dụng <br className="hidden md:block" />
+              <span className="text-muted-foreground/80">Cho Cuộc Sống Hiện Đại.</span>
+            </h1>
+            <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl text-balance animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200 fill-mode-forwards md:leading-relaxed">
+              Sự kết hợp hoàn hảo giữa chất lượng bền bỉ và thiết kế tối giản.
+              Khám phá bộ sưu tập được tuyển chọn riêng cho ngôi nhà của bạn.
+            </p>
+          </div>
         </div>
       </section>
 

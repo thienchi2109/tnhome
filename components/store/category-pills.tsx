@@ -29,9 +29,9 @@ export function CategoryPills({ categories }: CategoryPillsProps) {
           <Link
             href="/products"
             className={cn(
-              "shrink-0 rounded-full border border-foreground bg-foreground px-4 py-2",
-              "text-sm font-medium text-background",
-              "transition-colors hover:bg-foreground/90"
+              "shrink-0 rounded-full border border-primary bg-primary px-5 py-2",
+              "text-sm font-medium text-primary-foreground shadow-sm",
+              "transition-all duration-300 hover:opacity-90 hover:shadow-md active:scale-95"
             )}
           >
             Tất cả
@@ -41,9 +41,9 @@ export function CategoryPills({ categories }: CategoryPillsProps) {
               key={category.slug}
               href={`/products?category=${category.slug}`}
               className={cn(
-                "shrink-0 rounded-full border border-border px-4 py-2",
-                "text-sm font-medium text-foreground",
-                "transition-colors hover:bg-muted"
+                "shrink-0 rounded-full border border-border bg-background/50 backdrop-blur-sm px-5 py-2",
+                "text-sm font-medium text-muted-foreground hover:text-foreground",
+                "transition-all duration-300 hover:border-foreground/20 hover:bg-muted/50 hover:shadow-sm active:scale-95"
               )}
             >
               {category.name}
