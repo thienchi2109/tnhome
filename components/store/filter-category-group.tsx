@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTransition, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn, toSlug } from "@/lib/utils";
 
 interface CategoryWithSlug {
@@ -93,7 +92,7 @@ export function FilterCategoryGroup({
       <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
         Danh mục
       </div>
-      <ScrollArea className="h-[200px] pr-3">
+      <div className="max-h-[600px] overflow-y-auto pr-3 scrollbar-thin">
         <fieldset
           className={cn(
             "space-y-3",
@@ -134,7 +133,7 @@ export function FilterCategoryGroup({
             );
           })}
         </fieldset>
-      </ScrollArea>
+      </div>
     </div>
   );
 }

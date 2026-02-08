@@ -45,7 +45,7 @@ export function CartDrawer() {
           </div>
         ) : (
           <>
-            <ScrollArea className="flex-1 -mx-6 px-6">
+            <ScrollArea className="flex-1 px-4">
               <div className="space-y-4 py-4">
                 {items.map((item) => (
                   <div key={item.id} className="flex gap-4">
@@ -109,7 +109,7 @@ export function CartDrawer() {
 
             <div className="space-y-4 pt-4">
               <Separator />
-              <div className="flex items-center justify-between text-lg font-semibold">
+              <div className="flex items-center justify-between text-lg font-semibold px-4">
                 <span>Tổng cộng</span>
                 <span className="text-primary">{formatPrice(total)}</span>
               </div>

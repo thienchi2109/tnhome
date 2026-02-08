@@ -7,7 +7,8 @@ import { auth } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 import type { ActionResult } from "./types";
 import type { OrderStatus } from "@/types";
-import { requireAdmin, isUnauthorizedError } from "./admin-auth";
+import { requireAdmin } from "./admin-auth";
+import { isUnauthorizedError } from "./errors";
 
 // Order validation schema
 const orderItemSchema = z.object({

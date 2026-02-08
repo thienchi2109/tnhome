@@ -7,8 +7,9 @@ import { unstable_cache } from "next/cache";
 import { Prisma } from "@prisma/client";
 import type { PaginationParams } from "@/lib/constants";
 import { toSlug } from "@/lib/utils";
-import type { ActionResult, PaginatedProducts, ProductFilterOptions } from "./types";
-import { requireAdmin, isUnauthorizedError } from "./admin-auth";
+import type { ActionResult, AdminProductFilterOptions, PaginatedProducts, ProductFilterOptions } from "./types";
+import { requireAdmin } from "./admin-auth";
+import { isUnauthorizedError } from "./errors";
 
 // Pagination constants
 const DEFAULT_PAGE = 1;
@@ -175,7 +176,8 @@ export async function toggleProductStatus(
 
 // Get Products for Admin (with pagination)
 export async function getProducts(
-  params?: PaginationParams
+  params?: PaginationParams,
+  filters?: AdminProductFilterOptions
 ): Promise<PaginatedProducts> {
   await requireAdmin();
 
@@ -184,12 +186,27 @@ export async function getProducts(
     pageSize: DEFAULT_PAGE_SIZE,
   };
 
-  const totalItems = await prisma.product.count();
+  const whereClause: Prisma.ProductWhereInput = {
+    ...(filters?.status === "active" && { isActive: true }),
+    ...(filters?.status === "inactive" && { isActive: false }),
+    ...(filters?.search && {
+      OR: [
+        { name: { contains: filters.search, mode: "insensitive" as const } },
+        { description: { contains: filters.search, mode: "insensitive" as const } },
+      ],
+    }),
+    ...(filters?.categories && filters.categories.length > 0 && {
+      category: { in: filters.categories },
+    }),
+  };
+
+  const totalItems = await prisma.product.count({ where: whereClause });
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const page = Math.min(rawPage, totalPages);
+  const page = Math.max(1, Math.min(rawPage, totalPages));
   const skip = (page - 1) * pageSize;
 
   const products = await prisma.product.findMany({
+    where: whereClause,
     orderBy: { createdAt: "desc" },
     skip,
     take: pageSize,
@@ -304,7 +321,7 @@ export async function getActiveProductsPaginated(
 
   const totalItems = await prisma.product.count({ where: whereClause });
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const page = Math.min(rawPage, totalPages);
+  const page = Math.max(1, Math.min(rawPage, totalPages));
   const skip = (page - 1) * pageSize;
 
   const products = await prisma.product.findMany({

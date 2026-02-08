@@ -2,7 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { requireAdmin, isUnauthorizedError } from "./admin-auth";
+import { requireAdmin } from "./admin-auth";
+import { isUnauthorizedError } from "./errors";
 import { parseProductImportSheet } from "@/lib/import-products";
 import type { ActionResult } from "./types";
 

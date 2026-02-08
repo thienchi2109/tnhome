@@ -7,6 +7,7 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useCartStore } from "@/store/cart";
 import { HeaderSearchInput } from "./header-search-input";
 
@@ -26,7 +27,7 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // SSR-safe mounted check without useEffect + setState
-  const emptySubscribe = () => () => {};
+  const emptySubscribe = () => () => { };
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   // Use useSyncExternalStore for SSR-safe cart count
@@ -234,7 +235,7 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
 
         {/* Categories Navigation - Sticky */}
         <div className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b shadow-sm">
-          <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-2 px-4 md:px-6 overflow-x-auto">
+          <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-2 px-4 md:px-6 overflow-x-auto scrollbar-hide">
 
             {/* All Categories Dropdown Trigger Design */}
             <Button className="shrink-0 gap-2 rounded-full hidden md:flex" size="sm">
@@ -244,22 +245,63 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
 
             <div className="h-6 w-px bg-border mx-2 hidden md:block" />
 
-            <nav className="flex items-center gap-1 md:gap-2 pr-4 md:pr-0">
-              {categories.map((category) => (
-                <Link
-                  key={category.name}
-                  href={category.href}
-                  className={`
-                    whitespace-nowrap px-3 py-1.5 text-sm font-medium rounded-full transition-all border border-transparent shrink-0
-                    ${category.highlight
-                      ? "text-primary bg-primary/5 hover:bg-primary/10 border-primary/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    }
-                  `}
-                >
-                  {category.name}
-                </Link>
-              ))}
+            <nav className="flex items-center gap-1 md:gap-2 pr-4 md:pr-0 w-full md:w-auto">
+              {/* Mobile View: Scrollable list of ALL categories */}
+              <div className="flex md:hidden items-center gap-1 w-full">
+                {categories.map((category) => (
+                  <Link
+                    key={category.name}
+                    href={category.href}
+                    className={`
+                      whitespace-nowrap px-3 py-1.5 text-sm font-medium rounded-full transition-all border border-transparent shrink-0
+                      ${category.highlight
+                        ? "text-primary bg-primary/5 hover:bg-primary/10 border-primary/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }
+                    `}
+                  >
+                    {category.name}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Desktop View: Top 5 + Dropdown */}
+              <div className="hidden md:flex items-center gap-2">
+                {categories.slice(0, 5).map((category) => (
+                  <Link
+                    key={category.name}
+                    href={category.href}
+                    className={`
+                      whitespace-nowrap px-3 py-1.5 text-sm font-medium rounded-full transition-all border border-transparent shrink-0
+                      ${category.highlight
+                        ? "text-primary bg-primary/5 hover:bg-primary/10 border-primary/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }
+                    `}
+                  >
+                    {category.name}
+                  </Link>
+                ))}
+
+                {categories.length > 5 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="rounded-full gap-1 px-3 text-muted-foreground hover:text-foreground">
+                        Xem thêm <ChevronDown className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-56 max-h-[60vh] overflow-y-auto">
+                      {categories.slice(5).map((category) => (
+                        <DropdownMenuItem key={category.name} asChild>
+                          <Link href={category.href} className="w-full cursor-pointer">
+                            {category.name}
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
             </nav>
 
             <div className="ml-auto shrink-0 hidden lg:block">
