@@ -1,11 +1,19 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
+import dynamic from "next/dynamic";
 
 interface AdminHeaderProps {
   title: string;
   description?: string;
 }
+
+const ClerkUserButton = dynamic(
+  () => import("@clerk/nextjs").then((mod) => mod.UserButton),
+  {
+    ssr: false,
+    loading: () => <div className="h-9 w-9 rounded-full bg-muted/50" aria-hidden />,
+  }
+);
 
 export function AdminHeader({ title, description }: AdminHeaderProps) {
   return (
@@ -17,7 +25,7 @@ export function AdminHeader({ title, description }: AdminHeaderProps) {
         )}
       </div>
       <div className="flex items-center gap-4">
-        <UserButton
+        <ClerkUserButton
           appearance={{
             elements: {
               avatarBox: "h-9 w-9",

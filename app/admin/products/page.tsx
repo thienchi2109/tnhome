@@ -107,8 +107,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                     <th className="text-left p-4 font-medium text-muted-foreground text-sm">
                       Giá
                     </th>
-                    <th className="text-left p-4 font-medium text-muted-foreground text-sm">
-                      Mô tả
+                    <th className="text-right p-4 font-medium text-muted-foreground text-sm">
+                      Tồn kho
                     </th>
                     <th className="text-left p-4 font-medium text-muted-foreground text-sm">
                       Trạng thái
@@ -161,10 +161,20 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                           {formatPrice(product.price)}
                         </span>
                       </td>
-                      <td className="p-4">
-                        <p className="text-sm text-muted-foreground truncate max-w-[200px]">
-                          {product.description || "—"}
-                        </p>
+                      <td className="p-4 text-right">
+                        <span className="font-medium tabular-nums">
+                          {product.stock}
+                        </span>
+                        {product.stock <= 0 && (
+                          <Badge className="ml-2 bg-red-100 text-red-800 hover:bg-red-100 border-0">
+                            Hết hàng
+                          </Badge>
+                        )}
+                        {product.stock > 0 && product.stock <= product.lowStockThreshold && (
+                          <Badge className="ml-2 bg-amber-100 text-amber-800 hover:bg-amber-100 border-0">
+                            Sắp hết
+                          </Badge>
+                        )}
                       </td>
                       <td className="p-4">
                         <Badge

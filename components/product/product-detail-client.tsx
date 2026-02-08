@@ -2,11 +2,13 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { formatPrice, cn } from "@/lib/utils";
 import { ArrowLeft, Minus, Plus, Share2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/types";
+import { useCartStore } from "@/store/cart";
 
 interface ProductDetailClientProps {
   product: Product;
@@ -16,6 +18,11 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const addItem = useCartStore((s) => s.addItem);
+
+  const isOutOfStock = product.stock <= 0;
+  const isLowStock = product.stock > 0 && product.stock <= product.lowStockThreshold;
+  const maxQuantity = Math.max(1, product.stock);
 
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
@@ -42,13 +49,18 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   }, [handleScroll]);
 
   const handleAddToCart = () => {
-    console.log("Added to cart:", {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      quantity,
-    });
-    // In a real app, calls cart store here
+    if (isOutOfStock) return;
+    addItem(
+      {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.images[0] || "",
+        stock: product.stock,
+      },
+      quantity
+    );
+    setQuantity(1);
   };
 
   const scrollToImage = (index: number) => {
@@ -95,6 +107,16 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                         loading={idx === 0 ? undefined : 'lazy'}
                         sizes="100vw"
                       />
+                      {isOutOfStock && idx === 0 && (
+                        <>
+                          <div className="absolute inset-0 bg-white/60 z-10" />
+                          <div className="absolute top-3 left-3 z-20">
+                            <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-0">
+                              Hết hàng
+                            </Badge>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -132,6 +154,16 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   <div className="absolute inset-0 flex items-center justify-center bg-neutral-200">
                     <span className="text-muted-foreground">No image</span>
                   </div>
+                )}
+                {isOutOfStock && (
+                  <>
+                    <div className="absolute inset-0 bg-white/60 z-10" />
+                    <div className="absolute top-3 left-3 z-20">
+                      <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-0 text-sm">
+                        Hết hàng
+                      </Badge>
+                    </div>
+                  </>
                 )}
               </div>
               {/* Thumbnails (Grid) */}
@@ -182,6 +214,13 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               </p>
             )}
 
+            {/* Stock Indicator */}
+            {isLowStock && (
+              <p className="text-sm text-amber-600 font-medium">
+                Còn {product.stock} sản phẩm
+              </p>
+            )}
+
             {/* Actions */}
             <div className="space-y-3 pt-6 border-t border-border">
               <div className="flex gap-4">
@@ -189,14 +228,15 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="p-1 hover:bg-muted rounded-full transition-colors"
-                    disabled={quantity <= 1}
+                    disabled={quantity <= 1 || isOutOfStock}
                   >
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="w-8 text-center font-medium">{quantity}</span>
                   <button
-                    onClick={() => setQuantity(quantity + 1)}
+                    onClick={() => setQuantity(Math.min(quantity + 1, maxQuantity))}
                     className="p-1 hover:bg-muted rounded-full transition-colors"
+                    disabled={quantity >= maxQuantity || isOutOfStock}
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -205,8 +245,9 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   size="lg"
                   className="flex-1 rounded-full h-12 text-base"
                   onClick={handleAddToCart}
+                  disabled={isOutOfStock}
                 >
-                  Add to Cart
+                  {isOutOfStock ? "Hết hàng" : "Thêm vào giỏ"}
                 </Button>
                 <Button
                   variant="outline"

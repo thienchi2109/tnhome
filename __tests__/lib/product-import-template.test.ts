@@ -28,6 +28,8 @@ describe("createProductImportTemplate", () => {
       "images",
       "description",
       "isActive",
+      "stock",
+      "low_stock_threshold",
     ]);
 
     // Verify example data row exists (row 2)

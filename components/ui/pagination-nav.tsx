@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,6 +62,8 @@ export function PaginationNav({
 
   const canGoPrev = currentPage > 1;
   const canGoNext = currentPage < totalPages;
+  const canGoFirst = canGoPrev;
+  const canGoLast = canGoNext;
 
   // ── Store Variant ──
   if (variant === "store") {
@@ -84,6 +91,31 @@ export function PaginationNav({
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
+          {/* First */}
+          <button
+            type="button"
+            onClick={() => navigateToPage(1)}
+            disabled={!canGoFirst || isPending}
+            aria-label="Trang đầu"
+            className={cn(
+              "group relative flex items-center gap-1.5 px-4 py-2.5 rounded-full",
+              "text-sm font-medium transition-all duration-200",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+              canGoFirst
+                ? "text-foreground hover:bg-muted active:scale-[0.98]"
+                : "text-muted-foreground/40 cursor-not-allowed",
+              isPending && "opacity-60"
+            )}
+          >
+            <ChevronsLeft
+              className={cn(
+                "w-4 h-4 transition-transform duration-200",
+                canGoFirst && "group-hover:-translate-x-0.5"
+              )}
+            />
+            <span className="hidden md:inline">Đầu</span>
+          </button>
+
           {/* Previous */}
           <button
             type="button"
@@ -151,6 +183,31 @@ export function PaginationNav({
               )}
             />
           </button>
+
+          {/* Last */}
+          <button
+            type="button"
+            onClick={() => navigateToPage(totalPages)}
+            disabled={!canGoLast || isPending}
+            aria-label="Trang cuối"
+            className={cn(
+              "group relative flex items-center gap-1.5 px-4 py-2.5 rounded-full",
+              "text-sm font-medium transition-all duration-200",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+              canGoLast
+                ? "text-foreground hover:bg-muted active:scale-[0.98]"
+                : "text-muted-foreground/40 cursor-not-allowed",
+              isPending && "opacity-60"
+            )}
+          >
+            <span className="hidden md:inline">Cuối</span>
+            <ChevronsRight
+              className={cn(
+                "w-4 h-4 transition-transform duration-200",
+                canGoLast && "group-hover:translate-x-0.5"
+              )}
+            />
+          </button>
         </div>
 
         {/* Total Items Caption */}
@@ -204,6 +261,25 @@ export function PaginationNav({
 
       {/* Navigation Buttons */}
       <div className="flex items-center gap-2">
+        {canGoFirst ? (
+          <Button variant="outline" size="icon" className="h-9 w-9" asChild>
+            <Link href={createPageUrl(1)}>
+              <ChevronsLeft className="h-4 w-4" />
+              <span className="sr-only">Trang đầu</span>
+            </Link>
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9"
+            disabled
+          >
+            <ChevronsLeft className="h-4 w-4" />
+            <span className="sr-only">Trang đầu</span>
+          </Button>
+        )}
+
         {canGoPrev ? (
           <Button variant="outline" size="icon" className="h-9 w-9" asChild>
             <Link href={createPageUrl(currentPage - 1)}>
@@ -239,6 +315,25 @@ export function PaginationNav({
           >
             <ChevronRight className="h-4 w-4" />
             <span className="sr-only">Trang sau</span>
+          </Button>
+        )}
+
+        {canGoLast ? (
+          <Button variant="outline" size="icon" className="h-9 w-9" asChild>
+            <Link href={createPageUrl(totalPages)}>
+              <ChevronsRight className="h-4 w-4" />
+              <span className="sr-only">Trang cuối</span>
+            </Link>
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9"
+            disabled
+          >
+            <ChevronsRight className="h-4 w-4" />
+            <span className="sr-only">Trang cuối</span>
           </Button>
         )}
       </div>

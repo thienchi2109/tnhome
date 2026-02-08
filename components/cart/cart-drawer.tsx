@@ -93,9 +93,13 @@ export function CartDrawer() {
                           size="icon"
                           className="h-7 w-7"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          disabled={item.quantity >= (item.stock ?? 99)}
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
+                        {item.quantity >= (item.stock ?? 99) && (
+                          <span className="text-xs text-muted-foreground ml-1">Tối đa</span>
+                        )}
                       </div>
                     </div>
                   </div>

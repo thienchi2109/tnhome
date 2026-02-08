@@ -24,6 +24,8 @@ const productFormSchema = z.object({
   category: z.string().min(1, "Danh mục là bắt buộc"),
   images: z.array(z.string().url()).min(1, "Cần ít nhất một hình ảnh"),
   isActive: z.boolean(),
+  stock: z.number().int().min(0, "Tồn kho phải >= 0"),
+  lowStockThreshold: z.number().int().min(0, "Ngưỡng cảnh báo phải >= 0"),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -48,6 +50,8 @@ export function ProductForm({ initialData, onSuccess, categories = [] }: Product
       category: initialData?.category || "",
       images: initialData?.images || [],
       isActive: initialData?.isActive ?? true,
+      stock: initialData?.stock ?? 0,
+      lowStockThreshold: initialData?.lowStockThreshold ?? 5,
     },
   });
 
@@ -173,6 +177,45 @@ export function ProductForm({ initialData, onSuccess, categories = [] }: Product
           {form.formState.errors.category && (
             <p className="text-sm text-red-500">
               {form.formState.errors.category.message}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Stock and Threshold */}
+      <div className="grid gap-6 sm:grid-cols-2">
+        {/* Stock */}
+        <div className="space-y-2">
+          <Label htmlFor="stock">Tồn kho</Label>
+          <Input
+            id="stock"
+            type="number"
+            min={0}
+            placeholder="0"
+            disabled={isPending}
+            {...form.register("stock", { valueAsNumber: true })}
+          />
+          {form.formState.errors.stock && (
+            <p className="text-sm text-red-500">
+              {form.formState.errors.stock.message}
+            </p>
+          )}
+        </div>
+
+        {/* Low Stock Threshold */}
+        <div className="space-y-2">
+          <Label htmlFor="lowStockThreshold">Ngưỡng cảnh báo</Label>
+          <Input
+            id="lowStockThreshold"
+            type="number"
+            min={0}
+            placeholder="5"
+            disabled={isPending}
+            {...form.register("lowStockThreshold", { valueAsNumber: true })}
+          />
+          {form.formState.errors.lowStockThreshold && (
+            <p className="text-sm text-red-500">
+              {form.formState.errors.lowStockThreshold.message}
             </p>
           )}
         </div>

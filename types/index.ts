@@ -4,6 +4,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   image: string;
+  stock: number;
 }
 
 export interface Product {
@@ -15,6 +16,8 @@ export interface Product {
   images: string[];
   category: string;
   isActive: boolean;
+  stock: number;
+  lowStockThreshold: number;
 }
 
 export interface Customer {
