@@ -165,6 +165,8 @@ export async function toggleProductStatus(
 export async function getProducts(
   params?: PaginationParams
 ): Promise<PaginatedProducts> {
+  await requireAdmin();
+
   const { page: rawPage, pageSize } = params ?? {
     page: DEFAULT_PAGE,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -205,8 +207,10 @@ export async function getProducts(
   };
 }
 
-// Get Single Product
+// Get Single Product (admin)
 export async function getProduct(id: string) {
+  await requireAdmin();
+
   const product = await prisma.product.findUnique({
     where: { id },
     select: {

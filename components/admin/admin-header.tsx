@@ -1,17 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { UserButton } from "@clerk/nextjs";
+import dynamic from "next/dynamic";
 
 interface AdminHeaderProps {
   title: string;
   description?: string;
 }
 
-export function AdminHeader({ title, description }: AdminHeaderProps) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+const ClerkUserButton = dynamic(
+  () => import("@clerk/nextjs").then((mod) => mod.UserButton),
+  {
+    ssr: false,
+    loading: () => <div className="h-9 w-9 rounded-full bg-muted/50" aria-hidden />,
+  }
+);
 
+export function AdminHeader({ title, description }: AdminHeaderProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white/80 backdrop-blur-sm px-6">
       <div>
@@ -20,8 +24,8 @@ export function AdminHeader({ title, description }: AdminHeaderProps) {
           <p className="text-sm text-muted-foreground">{description}</p>
         )}
       </div>
-      <div className={`flex items-center gap-4 ${mounted ? "" : "invisible"}`}>
-        <UserButton
+      <div className="flex items-center gap-4">
+        <ClerkUserButton
           appearance={{
             elements: {
               avatarBox: "h-9 w-9",
