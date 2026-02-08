@@ -24,6 +24,7 @@ interface HeaderProps {
 export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
   const { openCart } = useCartStore();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // SSR-safe mounted check without useEffect + setState
   const emptySubscribe = () => () => { };
@@ -58,7 +59,7 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
         <div className="mx-auto flex items-center justify-between gap-4 md:gap-8 px-4 md:px-6 max-w-[1400px]">
           {/* Mobile Menu & Logo */}
           <div className="flex items-center gap-3 md:gap-8 shrink-0">
-            <Sheet>
+            <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="lg:hidden h-10 w-10 -ml-2">
                   <Menu className="h-6 w-6" />
@@ -68,7 +69,7 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
               <SheetContent side="left" className="w-[300px] overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle className="text-left">
-                    <Link href="/" className="flex items-center gap-2">
+                    <Link href="/" onClick={() => setIsSidebarOpen(false)} className="flex items-center gap-2">
                       <div className="relative h-8 w-8 overflow-hidden rounded-sm">
                         <Image
                           src="/app-logo.png"
@@ -89,6 +90,7 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
                         <Link
                           key={category.name}
                           href={category.href}
+                          onClick={() => setIsSidebarOpen(false)}
                           className={`px-2 py-2 text-sm font-medium rounded-md transition-colors ${category.highlight
                             ? "text-primary bg-primary/5 hover:bg-primary/10"
                             : "text-foreground hover:bg-muted"
@@ -106,13 +108,13 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
                       <SignedOut>
                         <div className="grid gap-2 px-2">
                           <Button asChild variant="outline" className="justify-start gap-2 w-full">
-                            <Link href="/sign-in">
+                            <Link href="/sign-in" onClick={() => setIsSidebarOpen(false)}>
                               <LogIn className="h-4 w-4" />
                               Đăng nhập
                             </Link>
                           </Button>
                           <Button asChild className="justify-start gap-2 w-full">
-                            <Link href="/sign-up">
+                            <Link href="/sign-up" onClick={() => setIsSidebarOpen(false)}>
                               <UserPlus className="h-4 w-4" />
                               Đăng ký
                             </Link>
@@ -121,7 +123,7 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
                       </SignedOut>
                       <SignedIn>
                         <div className="flex flex-col gap-2 px-2">
-                          <Link href="/admin" className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors">
+                          <Link href="/admin" onClick={() => setIsSidebarOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors">
                             <Settings className="h-4 w-4" />
                             Quản trị viên
                           </Link>

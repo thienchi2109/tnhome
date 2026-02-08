@@ -41,8 +41,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Section 2: Category Pills */}
-      <section className="pb-6">
+      {/* Section 2: Category Pills — hidden below xl, redundant with sidebar/navbar */}
+      <section className="hidden xl:block pb-6">
         <CategoryPills categories={categoriesWithSlugs} />
       </section>
 
