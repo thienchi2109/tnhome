@@ -83,9 +83,9 @@ export default async function HomePage() {
       {/* Section 4: Category Spotlight */}
       <section className="py-12 md:py-16">
         <CategorySpotlight
-          title="Bộ Sưu Tập Nhà Bếp"
+          title="Bộ Sưu Tập Đồ Dùng Bếp"
           subtitle="Được thiết kế cho cả công năng và vẻ đẹp. Nâng tầm không gian bếp của bạn."
-          href="/products?category=nha-bep"
+          href="/products?category=do-dung-bep"
           ctaText="Khám Phá"
           imageSrc="/kitchen-collection.png"
           imageAlt="Bộ sưu tập nhà bếp cao cấp"

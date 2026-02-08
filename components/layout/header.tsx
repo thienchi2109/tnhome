@@ -246,7 +246,7 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
 
           <div className="h-6 w-px bg-border mx-2 hidden md:block" />
 
-          <nav className="flex items-center gap-1 md:gap-2 pr-4 md:pr-0 w-full md:w-auto">
+          <nav className="flex items-center gap-1 md:gap-2 pr-4 md:pr-0 w-full md:w-auto flex-1 justify-center">
             {/* Mobile View: Scrollable list of ALL categories */}
             <div className="flex md:hidden items-center gap-1 w-full">
               {categories.map((category) => (
@@ -309,11 +309,7 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
             </div>
           </nav>
 
-          <div className="ml-auto shrink-0 hidden lg:block">
-            <Link href="/products" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
-              Xem tất cả <ChevronDown className="h-4 w-4 -rotate-90" />
-            </Link>
-          </div>
+
         </div>
       </div>
     </header>
