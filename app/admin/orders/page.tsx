@@ -43,9 +43,15 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
           <div className="flex flex-wrap items-center gap-2">
             {STATUS_FILTERS.map((filter) => {
               const isActive = currentStatus === filter.value;
-              const href = filter.value
-                ? `/admin/orders?status=${filter.value}`
-                : "/admin/orders";
+              const linkParams = new URLSearchParams(params as Record<string, string>);
+              if (filter.value) {
+                linkParams.set("status", filter.value);
+              } else {
+                linkParams.delete("status");
+              }
+              linkParams.delete("page");
+              const qs = linkParams.toString();
+              const href = qs ? `/admin/orders?${qs}` : "/admin/orders";
 
               return (
                 <Link
