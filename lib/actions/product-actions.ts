@@ -46,6 +46,54 @@ function normalizePagination(params?: PaginationParams): { page: number; pageSiz
   };
 }
 
+async function paginatedProductQuery(
+  rawPage: number,
+  pageSize: number,
+  whereClause: Prisma.ProductWhereInput
+): Promise<PaginatedProducts> {
+  const result = await prisma.$transaction(
+    async (tx) => {
+      const totalItems = await tx.product.count({ where: whereClause });
+      const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+      const page = Math.max(1, Math.min(rawPage, totalPages));
+      const skip = (page - 1) * pageSize;
+
+      const products = await tx.product.findMany({
+        where: whereClause,
+        orderBy: PRODUCT_ORDER_BY,
+        skip,
+        take: pageSize,
+        select: {
+          id: true,
+          externalId: true,
+          name: true,
+          description: true,
+          price: true,
+          category: true,
+          images: true,
+          isActive: true,
+          stock: true,
+          lowStockThreshold: true,
+          createdAt: true,
+        },
+      });
+
+      return { products, page, totalItems, totalPages };
+    },
+    { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
+  );
+
+  return {
+    products: result.products,
+    pagination: {
+      page: result.page,
+      pageSize,
+      totalItems: result.totalItems,
+      totalPages: result.totalPages,
+    },
+  };
+}
+
 // Validation schemas
 const productSchema = z.object({
   externalId: z.preprocess((value) => {
@@ -230,47 +278,7 @@ export async function getProducts(
     }),
   };
 
-  const result = await prisma.$transaction(
-    async (tx) => {
-      const totalItems = await tx.product.count({ where: whereClause });
-      const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-      const page = Math.max(1, Math.min(rawPage, totalPages));
-      const skip = (page - 1) * pageSize;
-
-      const products = await tx.product.findMany({
-        where: whereClause,
-        orderBy: PRODUCT_ORDER_BY,
-        skip,
-        take: pageSize,
-        select: {
-          id: true,
-          externalId: true,
-          name: true,
-          description: true,
-          price: true,
-          category: true,
-          images: true,
-          isActive: true,
-          stock: true,
-          lowStockThreshold: true,
-          createdAt: true,
-        },
-      });
-
-      return { products, page, totalItems, totalPages };
-    },
-    { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
-  );
-
-  return {
-    products: result.products,
-    pagination: {
-      page: result.page,
-      pageSize,
-      totalItems: result.totalItems,
-      totalPages: result.totalPages,
-    },
-  };
+  return paginatedProductQuery(rawPage, pageSize, whereClause);
 }
 
 // Get Single Product (admin)
@@ -352,47 +360,7 @@ export async function getActiveProductsPaginated(
     }),
   };
 
-  const result = await prisma.$transaction(
-    async (tx) => {
-      const totalItems = await tx.product.count({ where: whereClause });
-      const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-      const page = Math.max(1, Math.min(rawPage, totalPages));
-      const skip = (page - 1) * pageSize;
-
-      const products = await tx.product.findMany({
-        where: whereClause,
-        orderBy: PRODUCT_ORDER_BY,
-        skip,
-        take: pageSize,
-        select: {
-          id: true,
-          externalId: true,
-          name: true,
-          description: true,
-          price: true,
-          category: true,
-          images: true,
-          isActive: true,
-          stock: true,
-          lowStockThreshold: true,
-          createdAt: true,
-        },
-      });
-
-      return { products, page, totalItems, totalPages };
-    },
-    { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
-  );
-
-  return {
-    products: result.products,
-    pagination: {
-      page: result.page,
-      pageSize,
-      totalItems: result.totalItems,
-      totalPages: result.totalPages,
-    },
-  };
+  return paginatedProductQuery(rawPage, pageSize, whereClause);
 }
 
 // Get Categories
