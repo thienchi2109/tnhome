@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { getProducts, getAllCategories } from "@/lib/actions";
 import { normalizePaginationParams } from "@/lib/constants";
@@ -33,10 +34,15 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const paginationParams = normalizePaginationParams(params.page, params.pageSize);
 
   // Fetch products and categories in parallel
-  const [{ products, pagination }, categories] = await Promise.all([
-    getProducts(paginationParams),
-    getAllCategories(),
-  ]);
+  let products, pagination, categories;
+  try {
+    [{ products, pagination }, categories] = await Promise.all([
+      getProducts(paginationParams),
+      getAllCategories(),
+    ]);
+  } catch {
+    redirect("/?error=unauthorized");
+  }
 
   // Calculate display range
   const startItem =

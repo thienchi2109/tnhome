@@ -186,7 +186,7 @@ export async function getProducts(
 
   const totalItems = await prisma.product.count();
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const page = Math.min(rawPage, totalPages);
+  const page = Math.max(1, Math.min(rawPage, totalPages));
   const skip = (page - 1) * pageSize;
 
   const products = await prisma.product.findMany({
@@ -304,7 +304,7 @@ export async function getActiveProductsPaginated(
 
   const totalItems = await prisma.product.count({ where: whereClause });
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const page = Math.min(rawPage, totalPages);
+  const page = Math.max(1, Math.min(rawPage, totalPages));
   const skip = (page - 1) * pageSize;
 
   const products = await prisma.product.findMany({
