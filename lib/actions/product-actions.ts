@@ -5,16 +5,12 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { unstable_cache } from "next/cache";
 import { Prisma } from "@prisma/client";
-import type { PaginationParams } from "@/lib/constants";
+import { normalizePaginationParams, type PaginationParams } from "@/lib/constants";
 import { toSlug } from "@/lib/utils";
 import type { ActionResult, AdminProductFilterOptions, PaginatedProducts, ProductFilterOptions } from "./types";
 import { requireAdmin } from "./admin-auth";
 import { isUnauthorizedError } from "./errors";
 
-// Pagination constants
-const DEFAULT_PAGE = 1;
-const DEFAULT_PAGE_SIZE = 20;
-const MAX_PAGE_SIZE = 100;
 const PRODUCT_ORDER_BY: Prisma.ProductOrderByWithRelationInput[] = [
   { createdAt: "desc" },
   { id: "desc" },
@@ -34,16 +30,6 @@ function normalizeCategoryFilters(categories?: string[]): string[] | undefined {
     new Set(categories.map((category) => category.trim()).filter(Boolean))
   );
   return deduped.length > 0 ? deduped : undefined;
-}
-
-function normalizePagination(params?: PaginationParams): { page: number; pageSize: number } {
-  const rawPage = params?.page ?? DEFAULT_PAGE;
-  const rawPageSize = params?.pageSize ?? DEFAULT_PAGE_SIZE;
-
-  return {
-    page: Math.max(1, Math.floor(rawPage)),
-    pageSize: Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(rawPageSize))),
-  };
 }
 
 // TODO: RepeatableRead can cause P2034 serialization failures under concurrent
@@ -263,7 +249,11 @@ export async function getProducts(
 ): Promise<PaginatedProducts> {
   await requireAdmin();
 
-  const { page: rawPage, pageSize } = normalizePagination(params);
+  const { page: rawPage, pageSize } = normalizePaginationParams(
+    params?.page,
+    params?.pageSize,
+    { allowedPageSizes: null }
+  );
   const searchTerm = normalizeSearchTerm(filters?.search, 100);
   const categories = normalizeCategoryFilters(filters?.categories);
 
@@ -334,7 +324,11 @@ export async function getActiveProductsPaginated(
   params?: PaginationParams,
   filters?: string | ProductFilterOptions
 ): Promise<PaginatedProducts> {
-  const { page: rawPage, pageSize } = normalizePagination(params);
+  const { page: rawPage, pageSize } = normalizePaginationParams(
+    params?.page,
+    params?.pageSize,
+    { allowedPageSizes: null }
+  );
 
   const filterOptions: ProductFilterOptions =
     typeof filters === "string" ? { categories: [filters] } : filters ?? {};

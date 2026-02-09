@@ -21,35 +21,60 @@ export interface PaginationParams {
   pageSize: number;
 }
 
+interface NormalizePaginationOptions {
+  defaultPage?: number;
+  defaultPageSize?: number;
+  minPage?: number;
+  minPageSize?: number;
+  maxPageSize?: number;
+  allowedPageSizes?: readonly number[] | null;
+}
+
 // Helper to validate and normalize pagination params
 export function normalizePaginationParams(
   page?: string | number | null,
-  pageSize?: string | number | null
+  pageSize?: string | number | null,
+  options: NormalizePaginationOptions = {}
 ): PaginationParams {
+  const defaultPage = options.defaultPage ?? DEFAULT_PAGE;
+  const defaultPageSize = options.defaultPageSize ?? DEFAULT_PAGE_SIZE;
+  const minPage = options.minPage ?? 1;
+  const minPageSize = options.minPageSize ?? 1;
+  const maxPageSize = options.maxPageSize ?? MAX_PAGE_SIZE;
+  const allowedPageSizes =
+    options.allowedPageSizes === undefined
+      ? (ALLOWED_PAGE_SIZES as readonly number[])
+      : options.allowedPageSizes;
+
   // Parse and validate page
   let parsedPage =
-    typeof page === "string" ? parseInt(page, 10) : (page ?? DEFAULT_PAGE);
-  if (isNaN(parsedPage) || parsedPage < 1) {
-    parsedPage = DEFAULT_PAGE;
+    typeof page === "string" ? parseInt(page, 10) : (page ?? defaultPage);
+  if (!Number.isFinite(parsedPage) || parsedPage < minPage) {
+    parsedPage = defaultPage;
   }
+  parsedPage = Math.floor(parsedPage);
 
   // Parse and validate pageSize
   let parsedPageSize =
     typeof pageSize === "string"
       ? parseInt(pageSize, 10)
-      : (pageSize ?? DEFAULT_PAGE_SIZE);
-  
-  // Enforce maximum page size
-  if (parsedPageSize > MAX_PAGE_SIZE) {
-    parsedPageSize = MAX_PAGE_SIZE;
+      : (pageSize ?? defaultPageSize);
+  if (!Number.isFinite(parsedPageSize)) {
+    parsedPageSize = defaultPageSize;
   }
-  
-  if (
-    !ALLOWED_PAGE_SIZES.includes(
-      parsedPageSize as (typeof ALLOWED_PAGE_SIZES)[number]
-    )
-  ) {
-    parsedPageSize = DEFAULT_PAGE_SIZE;
+  parsedPageSize = Math.floor(parsedPageSize);
+
+  if (parsedPageSize < minPageSize) {
+    parsedPageSize = minPageSize;
+  }
+
+  // Enforce maximum page size
+  if (parsedPageSize > maxPageSize) {
+    parsedPageSize = maxPageSize;
+  }
+
+  if (allowedPageSizes && !allowedPageSizes.includes(parsedPageSize)) {
+    parsedPageSize = defaultPageSize;
   }
 
   return { page: parsedPage, pageSize: parsedPageSize };

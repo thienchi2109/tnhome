@@ -6,7 +6,8 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 import type { ActionResult } from "./types";
-import type { OrderStatus } from "@/types";
+import { isOrderStatus, type OrderStatus } from "@/types";
+import { normalizePaginationParams, type PaginationParams } from "@/lib/constants";
 import { requireAdmin } from "./admin-auth";
 import { isUnauthorizedError } from "./errors";
 
@@ -46,22 +47,18 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   CANCELLED: [],
 };
 
-const DEFAULT_PAGE = 1;
-const DEFAULT_PAGE_SIZE = 20;
-const MAX_PAGE_SIZE = 100;
 const ORDER_LIST_ORDER_BY: Prisma.OrderOrderByWithRelationInput[] = [
   { createdAt: "desc" },
   { id: "desc" },
 ];
 
-function normalizePagination(params?: { page?: number; pageSize?: number }) {
-  const rawPage = params?.page ?? DEFAULT_PAGE;
-  const rawPageSize = params?.pageSize ?? DEFAULT_PAGE_SIZE;
+function normalizeOrderStatus(status?: string): OrderStatus | undefined {
+  const normalizedStatus = status?.trim().toUpperCase();
+  if (!normalizedStatus || !isOrderStatus(normalizedStatus)) {
+    return undefined;
+  }
 
-  return {
-    page: Math.max(1, Math.floor(rawPage)),
-    pageSize: Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(rawPageSize))),
-  };
+  return normalizedStatus;
 }
 
 // Find or create customer with deduplication
@@ -336,17 +333,22 @@ export async function getCustomerByAuth() {
 
 // Get Orders for Admin (paginated)
 export async function getOrders(
-  params?: { page?: number; pageSize?: number },
+  params?: Partial<PaginationParams>,
   filters?: { status?: string; search?: string }
 ) {
   await requireAdmin();
 
-  const { page: rawPage, pageSize } = normalizePagination(params);
+  const { page: rawPage, pageSize } = normalizePaginationParams(
+    params?.page,
+    params?.pageSize,
+    { allowedPageSizes: null }
+  );
 
   const where: Prisma.OrderWhereInput = {};
 
-  if (filters?.status) {
-    where.status = filters.status;
+  const status = normalizeOrderStatus(filters?.status);
+  if (status) {
+    where.status = status;
   }
 
   const searchTerm = filters?.search?.trim().slice(0, 200);

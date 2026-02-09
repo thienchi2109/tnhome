@@ -3,12 +3,10 @@
 import { createContext, useContext } from "react";
 
 interface AdminLayoutContextValue {
-  isMobile: boolean;
   openSidebar: () => void;
 }
 
 const AdminLayoutContext = createContext<AdminLayoutContextValue>({
-  isMobile: false,
   openSidebar: () => {},
 });
 

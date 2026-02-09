@@ -84,4 +84,34 @@ describe("getOrders pagination", () => {
     });
     expect(result.orders).toEqual(lastPageOrders);
   });
+
+  it("applies a normalized status filter when status is valid", async () => {
+    orderCountMock.mockResolvedValue(0);
+    orderFindManyMock.mockResolvedValue([]);
+
+    await getOrders({ page: 1, pageSize: 20 }, { status: "paid" });
+
+    expect(orderCountMock).toHaveBeenCalledTimes(1);
+    expect(orderCountMock.mock.calls[0][0]).toMatchObject({
+      where: { status: "PAID" },
+    });
+    expect(orderFindManyMock).toHaveBeenCalledTimes(1);
+    expect(orderFindManyMock.mock.calls[0][0]).toMatchObject({
+      where: { status: "PAID" },
+    });
+  });
+
+  it("ignores invalid status filters", async () => {
+    orderCountMock.mockResolvedValue(0);
+    orderFindManyMock.mockResolvedValue([]);
+
+    await getOrders({ page: 1, pageSize: 20 }, { status: "INVALID" });
+
+    expect(orderCountMock).toHaveBeenCalledTimes(1);
+    expect(orderCountMock.mock.calls[0][0].where).not.toHaveProperty("status");
+    expect(orderFindManyMock).toHaveBeenCalledTimes(1);
+    expect(orderFindManyMock.mock.calls[0][0].where).not.toHaveProperty(
+      "status"
+    );
+  });
 });

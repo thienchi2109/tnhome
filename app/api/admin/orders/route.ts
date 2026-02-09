@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrders } from "@/lib/actions/order-actions";
 import { isUnauthorizedError } from "@/lib/actions/errors";
+import { isOrderStatus } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,12 @@ export async function GET(request: NextRequest) {
     const pageSize = Number.isFinite(parsedPageSize)
       ? Math.min(Math.max(1, Math.floor(parsedPageSize)), 100)
       : 20;
-    const status = searchParams.get("status") || undefined;
+    const rawStatus = searchParams.get("status");
+    const normalizedStatus = rawStatus?.trim().toUpperCase();
+    const status =
+      normalizedStatus && isOrderStatus(normalizedStatus)
+        ? normalizedStatus
+        : undefined;
     const search = searchParams.get("search") || undefined;
 
     const result = await getOrders(
