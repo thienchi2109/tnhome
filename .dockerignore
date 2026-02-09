@@ -1,0 +1,32 @@
+# Dependencies and build outputs
+node_modules
+.next
+out
+dist
+coverage
+*.tsbuildinfo
+
+# Git and local tooling metadata
+.git
+.worktrees
+.agent
+.claude
+.clerk
+.shared
+.vscode
+.idea
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Non-runtime project content
+docs
+__tests__
+README.md
+SECURITY.md
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
