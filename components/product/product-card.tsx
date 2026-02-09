@@ -80,13 +80,15 @@ export function ProductCard({ id, name, price, image, images, category, stock }:
         <h3 className="font-heading font-medium text-base leading-snug group-hover:text-primary transition-colors line-clamp-2 min-h-[3rem]">
           {name}
         </h3>
-        <div className="flex items-center justify-between mt-auto pt-2 border-t border-dashed border-border/50">
+        <div className="mt-auto flex flex-col gap-2 pt-2 border-t border-dashed border-border/50 lg:flex-row lg:items-center lg:justify-between">
           {category && (
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider line-clamp-1 bg-muted px-2 py-0.5 rounded-sm">
+            <p className="w-full text-xs font-medium text-muted-foreground uppercase tracking-wider leading-snug line-clamp-2 bg-muted px-2 py-1 rounded-sm lg:line-clamp-1 lg:max-w-[65%]">
               {category}
             </p>
           )}
-          <span className="font-bold text-lg text-primary tracking-tight">{formatPrice(price)}</span>
+          <span className="self-end font-bold text-lg text-primary tracking-tight lg:self-auto shrink-0">
+            {formatPrice(price)}
+          </span>
         </div>
       </div>
     </Link>
