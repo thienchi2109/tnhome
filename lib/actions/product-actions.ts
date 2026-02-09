@@ -298,6 +298,31 @@ export async function getProduct(id: string) {
   return product;
 }
 
+// Get Single Active Product for Storefront (public)
+export async function getActiveProductById(id: string) {
+  const product = await prisma.product.findFirst({
+    where: {
+      id,
+      isActive: true,
+    },
+    select: {
+      id: true,
+      externalId: true,
+      name: true,
+      description: true,
+      price: true,
+      category: true,
+      images: true,
+      isActive: true,
+      stock: true,
+      lowStockThreshold: true,
+      createdAt: true,
+    },
+  });
+
+  return product;
+}
+
 // Get Active Products for Storefront
 export async function getActiveProducts(category?: string) {
   const products = await prisma.product.findMany({
