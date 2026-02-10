@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { createClient } from "@/lib/supabase/server";
 import { createProductImportTemplate } from "@/lib/product-import-template";
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
@@ -9,18 +9,16 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
 
 export async function GET() {
   // 1. Check authentication
-  const { userId } = await auth();
-  if (!userId) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   // 2. Verify admin authorization
-  const client = await clerkClient();
-  const user = await client.users.getUser(userId);
-  const userEmail =
-    user.emailAddresses
-      .find((e) => e.id === user.primaryEmailAddressId)
-      ?.emailAddress?.toLowerCase() || "";
+  const userEmail = user.email?.toLowerCase() ?? "";
   if (!ADMIN_EMAILS.includes(userEmail)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
