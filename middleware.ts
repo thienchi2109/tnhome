@@ -2,10 +2,22 @@ import { updateSession } from "@/lib/supabase/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Admin emails allowed to access /admin routes
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "").split(",").map((e) => e.trim().toLowerCase());
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
 
 function isProtectedRoute(pathname: string) {
-  return pathname === "/admin" || pathname.startsWith("/admin/");
+  const p = pathname.toLowerCase();
+  return p === "/admin" || p.startsWith("/admin/");
+}
+
+function redirectWithCookies(url: URL, supabaseResponse: NextResponse) {
+  const response = NextResponse.redirect(url);
+  supabaseResponse.cookies.getAll().forEach((cookie) => {
+    response.cookies.set(cookie.name, cookie.value);
+  });
+  return response;
 }
 
 export default async function middleware(req: NextRequest) {
@@ -18,14 +30,14 @@ export default async function middleware(req: NextRequest) {
         "redirect_url",
         `${req.nextUrl.pathname}${req.nextUrl.search}`
       );
-      return NextResponse.redirect(signInUrl);
+      return redirectWithCookies(signInUrl, supabaseResponse);
     }
 
     const userEmail = user.email?.toLowerCase() ?? "";
     if (!ADMIN_EMAILS.includes(userEmail)) {
       const homeUrl = new URL("/", req.url);
       homeUrl.searchParams.set("error", "unauthorized");
-      return NextResponse.redirect(homeUrl);
+      return redirectWithCookies(homeUrl, supabaseResponse);
     }
   }
 

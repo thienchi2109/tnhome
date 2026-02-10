@@ -1,10 +1,20 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+const ALLOWED_HOSTS = new Set(
+  [
+    process.env.NEXT_PUBLIC_APP_URL
+      ? new URL(process.env.NEXT_PUBLIC_APP_URL).host
+      : null,
+    "localhost:3003",
+    "localhost:3000",
+  ].filter(Boolean) as string[]
+);
+
 function resolveOrigin(request: Request) {
   const requestUrl = new URL(request.url);
   const forwardedHost = request.headers.get("x-forwarded-host");
-  if (!forwardedHost) {
+  if (!forwardedHost || !ALLOWED_HOSTS.has(forwardedHost)) {
     return requestUrl.origin;
   }
 
@@ -45,6 +55,7 @@ export async function GET(request: Request) {
   const supabase = await createClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
+    console.error("Auth callback code exchange failed:", error.message);
     return NextResponse.redirect(
       new URL("/sign-in?error=auth-callback-failed", origin)
     );
