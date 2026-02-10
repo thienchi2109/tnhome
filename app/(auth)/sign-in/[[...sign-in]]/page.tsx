@@ -1,6 +1,5 @@
-import { SignIn } from "@clerk/nextjs";
 import { AuthShell } from "@/components/auth/auth-shell";
-import { clerkAuthAppearance } from "@/lib/clerk-auth-appearance";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
 export default function SignInPage() {
   return (
@@ -14,7 +13,7 @@ export default function SignInPage() {
         "Nhận đề xuất nội thất phù hợp với phong cách không gian của bạn.",
       ]}
     >
-      <SignIn appearance={clerkAuthAppearance} />
+      <GoogleSignInButton />
     </AuthShell>
   );
 }
