@@ -54,7 +54,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase]);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Sign out failed:", error);
+    }
     window.location.assign("/");
   }, [supabase]);
 

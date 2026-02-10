@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+const ALLOWED_PROTOCOLS = new Set(["http", "https"]);
+
 const ALLOWED_HOSTS = new Set(
   [
     process.env.NEXT_PUBLIC_APP_URL
       ? new URL(process.env.NEXT_PUBLIC_APP_URL).host
       : null,
-    "localhost:3003",
-    "localhost:3000",
+    ...(process.env.NODE_ENV === "development"
+      ? ["localhost:3003", "localhost:3000"]
+      : []),
   ].filter(Boolean) as string[]
 );
 
@@ -19,25 +22,31 @@ function resolveOrigin(request: Request) {
   }
 
   const forwardedProto = request.headers.get("x-forwarded-proto");
-  const protocol = forwardedProto ?? requestUrl.protocol.replace(":", "");
+  const protocol =
+    forwardedProto && ALLOWED_PROTOCOLS.has(forwardedProto)
+      ? forwardedProto
+      : requestUrl.protocol.replace(":", "");
   return `${protocol}://${forwardedHost}`;
 }
 
 function normalizeNextPath(nextParam: string | null, origin: string) {
-  let next = nextParam ?? "/";
+  const defaultPath = "/";
+  const next = nextParam ?? defaultPath;
 
   try {
-    const parsed = new URL(next, origin);
-    next = parsed.pathname;
+    const parsed = new URL(next);
+    const originHost = new URL(origin).host;
+    if (parsed.host !== originHost) {
+      return defaultPath;
+    }
+    return parsed.pathname.startsWith("/") ? parsed.pathname : defaultPath;
   } catch {
-    next = "/";
+    // Not an absolute URL, treat it as a relative candidate.
+    if (!next.startsWith("/")) {
+      return defaultPath;
+    }
+    return next;
   }
-
-  if (!next.startsWith("/")) {
-    return "/";
-  }
-
-  return next;
 }
 
 export async function GET(request: Request) {

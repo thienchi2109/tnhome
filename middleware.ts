@@ -9,7 +9,7 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
 
 function isProtectedRoute(pathname: string) {
   const p = pathname.toLowerCase();
-  return p === "/admin" || p.startsWith("/admin/");
+  return p === "/admin" || p.startsWith("/admin/") || p.startsWith("/api/admin/");
 }
 
 function redirectWithCookies(url: URL, supabaseResponse: NextResponse) {

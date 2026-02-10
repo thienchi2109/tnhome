@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
@@ -13,7 +14,13 @@ export default function SignInPage() {
         "Nhận đề xuất nội thất phù hợp với phong cách không gian của bạn.",
       ]}
     >
-      <GoogleSignInButton />
+      <Suspense
+        fallback={
+          <div className="h-11 w-full animate-pulse rounded-xl bg-muted" />
+        }
+      >
+        <GoogleSignInButton />
+      </Suspense>
     </AuthShell>
   );
 }
