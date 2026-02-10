@@ -27,28 +27,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let isMounted = true;
+    const loadingGuard = window.setTimeout(() => {
+      if (isMounted) {
+        setIsLoading(false);
+      }
+    }, 5000);
 
-    const loadCurrentUser = async () => {
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
+    const loadCurrentSession = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
 
-      if (!isMounted) return;
-      setUser(currentUser ?? null);
-      setIsLoading(false);
+        if (!isMounted) return;
+
+        if (error) {
+          console.error("Failed to load current auth session:", error.message);
+        }
+
+        setUser(session?.user ?? null);
+      } catch (error) {
+        if (!isMounted) return;
+        console.error("Failed to load current auth session:", error);
+        setUser(null);
+      } finally {
+        if (isMounted) {
+          window.clearTimeout(loadingGuard);
+          setIsLoading(false);
+        }
+      }
     };
 
-    void loadCurrentUser();
+    void loadCurrentSession();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
+      window.clearTimeout(loadingGuard);
       setUser(session?.user ?? null);
       setIsLoading(false);
     });
 
     return () => {
       isMounted = false;
+      window.clearTimeout(loadingGuard);
       subscription.unsubscribe();
     };
   }, [supabase]);

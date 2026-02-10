@@ -1,13 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { requireAdminMock, orderCountMock, orderFindManyMock, transactionMock } = vi.hoisted(
-  () => ({
-    requireAdminMock: vi.fn(),
-    orderCountMock: vi.fn(),
-    orderFindManyMock: vi.fn(),
-    transactionMock: vi.fn(),
-  })
-);
+const {
+  requireAdminMock,
+  orderCountMock,
+  orderFindManyMock,
+  transactionMock,
+  getUserMock,
+  createClientMock,
+} = vi.hoisted(() => ({
+  requireAdminMock: vi.fn(),
+  orderCountMock: vi.fn(),
+  orderFindManyMock: vi.fn(),
+  transactionMock: vi.fn(),
+  getUserMock: vi.fn(async () => ({ data: { user: null } })),
+  createClientMock: vi.fn(),
+}));
 
 vi.mock("@/lib/actions/admin-auth", () => ({
   requireAdmin: requireAdminMock,
@@ -20,8 +27,8 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(async () => ({ userId: null })),
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: createClientMock,
 }));
 
 vi.mock("next/cache", () => ({
@@ -36,6 +43,12 @@ describe("getOrders pagination", () => {
     orderCountMock.mockReset();
     orderFindManyMock.mockReset();
     transactionMock.mockReset();
+    getUserMock.mockReset();
+    createClientMock.mockReset();
+    getUserMock.mockResolvedValue({ data: { user: null } });
+    createClientMock.mockResolvedValue({
+      auth: { getUser: getUserMock },
+    });
     transactionMock.mockImplementation(async (callback: (tx: unknown) => unknown) =>
       callback({
         order: {

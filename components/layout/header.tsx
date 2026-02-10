@@ -82,6 +82,7 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
 
   const regularCategories = categories.filter((c) => !c.highlight);
   const highlightedCategories = categories.filter((c) => c.highlight);
+  const mobileMenuSheetId = "mobile-menu-sheet";
 
   return (
     <header className="relative z-50 flex w-full flex-col bg-background">
@@ -92,12 +93,21 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
           <div className="flex shrink-0 items-center gap-3 md:gap-8">
             <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="-ml-2 h-10 w-10 lg:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="-ml-2 h-10 w-10 lg:hidden"
+                  aria-controls={mobileMenuSheetId}
+                >
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] overflow-y-auto">
+              <SheetContent
+                id={mobileMenuSheetId}
+                side="left"
+                className="w-[300px] overflow-y-auto"
+              >
                 <SheetHeader>
                   <SheetTitle className="text-left">
                     <Link
@@ -140,7 +150,15 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
 
                   <div className="border-t pt-6">
                     <h3 className="px-2 pb-2 text-sm font-medium text-muted-foreground">Tài khoản</h3>
-                    <div className={isLoading ? "invisible" : undefined}>
+                    <div className="px-2 pb-2">
+                      <Button asChild variant="ghost" className="w-full justify-start gap-2">
+                        <Link href="/admin" onClick={() => setIsSidebarOpen(false)}>
+                          <Settings className="h-4 w-4" />
+                          Quản trị viên
+                        </Link>
+                      </Button>
+                    </div>
+                    <div>
                       {!user ? (
                         <div className="grid gap-2 px-2">
                           <Button asChild variant="outline" className="w-full justify-start gap-2">
@@ -218,12 +236,14 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
 
           {/* Actions */}
           <div className="flex shrink-0 items-center gap-1 md:gap-4">
+            <Button asChild variant="ghost" className="h-10 gap-2 rounded-full px-3">
+              <Link href="/admin" title="Quản trị viên">
+                <Settings className="h-5 w-5" />
+                <span className="text-sm font-medium">Quản trị</span>
+              </Link>
+            </Button>
             <div className="mr-1 hidden items-center gap-2 border-r border-border pr-4 md:flex">
-              <div
-                className={
-                  isLoading ? "invisible flex items-center gap-2" : "flex items-center gap-2"
-                }
-              >
+              <div className="flex items-center gap-2">
                 {!user ? (
                   <Link
                     href={signInHref}
@@ -234,13 +254,6 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
                   </Link>
                 ) : (
                   <>
-                    <Link
-                      href="/admin"
-                      className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary"
-                      title="Quản trị viên"
-                    >
-                      <Settings className="h-5 w-5" />
-                    </Link>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
@@ -267,6 +280,13 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
                         <DropdownMenuLabel className="truncate">
                           {user.email ?? "Tài khoản"}
                         </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin" className="flex w-full items-center gap-2">
+                            <Settings className="h-4 w-4" />
+                            Quản trị viên
+                          </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => {
