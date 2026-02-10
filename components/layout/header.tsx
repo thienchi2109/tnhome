@@ -150,14 +150,6 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
 
                   <div className="border-t pt-6">
                     <h3 className="px-2 pb-2 text-sm font-medium text-muted-foreground">Tài khoản</h3>
-                    <div className="px-2 pb-2">
-                      <Button asChild variant="ghost" className="w-full justify-start gap-2">
-                        <Link href="/admin" onClick={() => setIsSidebarOpen(false)}>
-                          <Settings className="h-4 w-4" />
-                          Quản trị viên
-                        </Link>
-                      </Button>
-                    </div>
                     <div>
                       {!user ? (
                         <div className="grid gap-2 px-2">
@@ -236,12 +228,6 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
 
           {/* Actions */}
           <div className="flex shrink-0 items-center gap-1 md:gap-4">
-            <Button asChild variant="ghost" className="h-10 gap-2 rounded-full px-3">
-              <Link href="/admin" title="Quản trị viên">
-                <Settings className="h-5 w-5" />
-                <span className="text-sm font-medium">Quản trị</span>
-              </Link>
-            </Button>
             <div className="mr-1 hidden items-center gap-2 border-r border-border pr-4 md:flex">
               <div className="flex items-center gap-2">
                 {!user ? (
