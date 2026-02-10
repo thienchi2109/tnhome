@@ -15,7 +15,7 @@ function isProtectedRoute(pathname: string) {
 function redirectWithCookies(url: URL, supabaseResponse: NextResponse) {
   const response = NextResponse.redirect(url);
   supabaseResponse.cookies.getAll().forEach((cookie) => {
-    response.cookies.set(cookie.name, cookie.value);
+    response.cookies.set(cookie);
   });
   return response;
 }
