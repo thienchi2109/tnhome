@@ -10,7 +10,7 @@ function normalizeRedirectPath(raw: string | undefined): string {
   if (!raw) return "";
   try {
     const parsed = new URL(raw, "http://dummy");
-    const path = parsed.pathname;
+    const path = `${parsed.pathname}${parsed.search}`;
     return path.startsWith("/") ? path : "";
   } catch {
     return raw.startsWith("/") ? raw : "";
