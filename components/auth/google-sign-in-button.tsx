@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -18,15 +19,42 @@ function resolveAppOrigin() {
   }
 }
 
+function normalizeRedirectPath(rawRedirect: string | null, origin: string) {
+  const defaultPath = "/";
+  if (!rawRedirect) {
+    return defaultPath;
+  }
+
+  try {
+    const parsed = new URL(rawRedirect, origin);
+    const isAbsoluteHttpUrl =
+      rawRedirect.startsWith("http://") || rawRedirect.startsWith("https://");
+
+    if (isAbsoluteHttpUrl && parsed.origin !== origin) {
+      return defaultPath;
+    }
+
+    const nextPath = `${parsed.pathname}${parsed.search}`;
+    return nextPath.startsWith("/") ? nextPath : defaultPath;
+  } catch {
+    return rawRedirect.startsWith("/") ? rawRedirect : defaultPath;
+  }
+}
+
 export function GoogleSignInButton() {
   const supabase = useMemo(() => createClient(), []);
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = async () => {
     setIsLoading(true);
 
     const origin = resolveAppOrigin();
-    const redirectTo = `${origin}/auth/callback`;
+    const redirectPath = normalizeRedirectPath(
+      searchParams.get("redirect_url"),
+      origin
+    );
+    const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(redirectPath)}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",

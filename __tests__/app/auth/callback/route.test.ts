@@ -75,6 +75,18 @@ describe("auth callback route", () => {
     expect(location.pathname).toBe("/");
   });
 
+  it("rejects protocol-relative next paths and redirects to home on same host", async () => {
+    const request = new Request(
+      "http://localhost:3003/auth/callback?code=ok&next=%2F%2Fevil.example"
+    );
+
+    const response = await GET(request);
+    const location = getLocation(response);
+
+    expect(location.host).toBe("localhost:3003");
+    expect(location.pathname).toBe("/");
+  });
+
   it("redirects to error page when code is missing", async () => {
     const request = new Request("http://localhost:3003/auth/callback?next=%2Fadmin");
 
