@@ -9,6 +9,7 @@ export {
   toggleProductStatus,
   getProducts,
   getProduct,
+  getActiveProductById,
   getActiveProducts,
   getActiveProductsPaginated,
   getCategories,

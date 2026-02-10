@@ -77,11 +77,11 @@ export function OrderActions({ orderId, currentStatus }: OrderActionsProps) {
             disabled={isPending}
           >
             {isPending ? (
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="md:mr-1.5 h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Icon className="mr-1.5 h-3.5 w-3.5" />
+              <Icon className="md:mr-1.5 h-3.5 w-3.5" />
             )}
-            {action.label}
+            <span className="hidden md:inline">{action.label}</span>
           </Button>
         );
       })}

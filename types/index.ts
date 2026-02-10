@@ -56,7 +56,19 @@ export interface OrderItem {
   product?: Product;
 }
 
-export type OrderStatus = "PENDING" | "PAID" | "SHIPPED" | "COMPLETED" | "CANCELLED";
+export const ORDER_STATUSES = [
+  "PENDING",
+  "PAID",
+  "SHIPPED",
+  "COMPLETED",
+  "CANCELLED",
+] as const;
+
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
+export function isOrderStatus(value: string): value is OrderStatus {
+  return (ORDER_STATUSES as readonly string[]).includes(value);
+}
 
 // Form input types
 export interface CheckoutFormData {

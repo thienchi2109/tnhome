@@ -100,18 +100,17 @@ export default async function AdminDashboardPage() {
     <div className="flex min-h-screen flex-col">
       <AdminHeader
         title="Tổng Quan"
-        description="Chào mừng trở lại! Đây là tình hình hoạt động của cửa hàng bạn."
       />
 
-      <main className="flex-1 p-6 space-y-8">
+      <main className="flex-1 p-4 xl:p-6 space-y-8">
         {/* Stats Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
           {statCards.map((card) => {
             const Icon = card.icon;
             return (
               <div
                 key={card.title}
-                className="group relative overflow-hidden rounded-2xl border bg-white p-6 shadow-sm transition-all hover:shadow-md"
+                className="group relative overflow-hidden rounded-2xl border bg-white p-4 sm:p-6 shadow-sm transition-all hover:shadow-md"
               >
                 {/* Subtle gradient background */}
                 <div
@@ -125,10 +124,10 @@ export default async function AdminDashboardPage() {
                     }`}
                 />
 
-                <div className="relative space-y-2">
+                <div className="relative space-y-1 sm:space-y-2">
                   {/* Icon */}
                   <div
-                    className={`inline-flex rounded-xl p-2.5 ${card.color === "blue"
+                    className={`inline-flex rounded-xl p-2 sm:p-2.5 ${card.color === "blue"
                         ? "bg-blue-50"
                         : card.color === "green"
                           ? "bg-green-50"
@@ -138,7 +137,7 @@ export default async function AdminDashboardPage() {
                       }`}
                   >
                     <Icon
-                      className={`h-5 w-5 ${card.color === "blue"
+                      className={`h-4 w-4 sm:h-5 sm:w-5 ${card.color === "blue"
                           ? "text-blue-600"
                           : card.color === "green"
                             ? "text-green-600"
@@ -150,12 +149,12 @@ export default async function AdminDashboardPage() {
                   </div>
 
                   {/* Title */}
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                     {card.title}
                   </p>
 
                   {/* Value */}
-                  <p className="text-3xl font-semibold tracking-tight text-foreground">
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">
                     {typeof card.value === "number"
                       ? card.value.toLocaleString()
                       : card.value}

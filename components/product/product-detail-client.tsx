@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, cn } from "@/lib/utils";
 import { ArrowLeft, Minus, Plus, Share2 } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
+import { toast } from "sonner";
 import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/types";
@@ -18,6 +20,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { userId } = useAuth();
   const addItem = useCartStore((s) => s.addItem);
 
   const isOutOfStock = product.stock <= 0;
@@ -50,6 +53,23 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
   const handleAddToCart = () => {
     if (isOutOfStock) return;
+    if (!userId) {
+      const redirectUrl = typeof window !== "undefined" ? window.location.href : "/";
+      const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`;
+      toast.info("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.", {
+        description: "Đăng nhập giúp bạn lưu giỏ hàng và theo dõi đơn hàng dễ hơn.",
+        action: {
+          label: "Đăng nhập",
+          onClick: () => {
+            if (typeof window !== "undefined") {
+              window.location.href = signInUrl;
+            }
+          },
+        },
+      });
+      return;
+    }
+
     addItem(
       {
         id: product.id,

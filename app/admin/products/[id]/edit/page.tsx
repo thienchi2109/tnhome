@@ -29,9 +29,9 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
         description={`Đang chỉnh sửa: ${product.name}`}
       />
 
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 xl:p-6">
         <div className="mx-auto max-w-2xl">
-          <div className="rounded-2xl border bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border bg-white p-4 sm:p-6 shadow-sm">
             <ProductForm initialData={product} categories={categories} />
           </div>
         </div>

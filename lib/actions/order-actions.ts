@@ -6,7 +6,8 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 import type { ActionResult } from "./types";
-import type { OrderStatus } from "@/types";
+import { isOrderStatus, type OrderStatus } from "@/types";
+import { normalizePaginationParams, type PaginationParams } from "@/lib/constants";
 import { requireAdmin } from "./admin-auth";
 import { isUnauthorizedError } from "./errors";
 
@@ -45,6 +46,20 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   COMPLETED: [],
   CANCELLED: [],
 };
+
+const ORDER_LIST_ORDER_BY: Prisma.OrderOrderByWithRelationInput[] = [
+  { createdAt: "desc" },
+  { id: "desc" },
+];
+
+function normalizeOrderStatus(status?: string): OrderStatus | undefined {
+  const normalizedStatus = status?.trim().toUpperCase();
+  if (!normalizedStatus || !isOrderStatus(normalizedStatus)) {
+    return undefined;
+  }
+
+  return normalizedStatus;
+}
 
 // Find or create customer with deduplication
 async function findOrCreateCustomer(
@@ -318,57 +333,73 @@ export async function getCustomerByAuth() {
 
 // Get Orders for Admin (paginated)
 export async function getOrders(
-  params?: { page?: number; pageSize?: number },
+  params?: Partial<PaginationParams>,
   filters?: { status?: string; search?: string }
 ) {
   await requireAdmin();
 
-  const rawPage = params?.page ?? 1;
-  const pageSize = params?.pageSize ?? 20;
+  const { page: rawPage, pageSize } = normalizePaginationParams(
+    params?.page,
+    params?.pageSize,
+    { allowedPageSizes: null }
+  );
 
   const where: Prisma.OrderWhereInput = {};
 
-  if (filters?.status) {
-    where.status = filters.status;
+  const status = normalizeOrderStatus(filters?.status);
+  if (status) {
+    where.status = status;
   }
 
-  if (filters?.search) {
-    const search = filters.search.slice(0, 200);
+  const searchTerm = filters?.search?.trim().slice(0, 200);
+  if (searchTerm) {
+    // Contains/ILIKE search is backed by pg_trgm GIN indexes from
+    // prisma/migrations/harden_search_filter_indexes.sql.
     where.OR = [
-      { id: { contains: search, mode: "insensitive" } },
-      { shippingName: { contains: search, mode: "insensitive" } },
-      { shippingPhone: { contains: search } },
+      { id: { contains: searchTerm, mode: "insensitive" } },
+      { shippingName: { contains: searchTerm, mode: "insensitive" } },
+      { shippingPhone: { contains: searchTerm } },
     ];
   }
 
-  const totalItems = await prisma.order.count({ where });
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const page = Math.max(1, Math.min(rawPage, totalPages));
-  const skip = (page - 1) * pageSize;
+  // TODO: RepeatableRead can cause P2034 serialization failures under concurrent
+  // writes. Low risk at current traffic, but add retry wrapper if 500s appear
+  // under load. See also product-actions.ts paginatedProductQuery.
+  const result = await prisma.$transaction(
+    async (tx) => {
+      const totalItems = await tx.order.count({ where });
+      const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+      const page = Math.max(1, Math.min(rawPage, totalPages));
+      const skip = (page - 1) * pageSize;
 
-  const orders = await prisma.order.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    skip,
-    take: pageSize,
-    select: {
-      id: true,
-      total: true,
-      status: true,
-      shippingName: true,
-      shippingPhone: true,
-      createdAt: true,
-      _count: { select: { items: true } },
+      const orders = await tx.order.findMany({
+        where,
+        orderBy: ORDER_LIST_ORDER_BY,
+        skip,
+        take: pageSize,
+        select: {
+          id: true,
+          total: true,
+          status: true,
+          shippingName: true,
+          shippingPhone: true,
+          createdAt: true,
+          _count: { select: { items: true } },
+        },
+      });
+
+      return { orders, page, totalItems, totalPages };
     },
-  });
+    { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
+  );
 
   return {
-    orders,
+    orders: result.orders,
     pagination: {
-      page,
+      page: result.page,
       pageSize,
-      totalItems,
-      totalPages,
+      totalItems: result.totalItems,
+      totalPages: result.totalPages,
     },
   };
 }

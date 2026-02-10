@@ -86,25 +86,25 @@ export function OrderList() {
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/30">
-                <th className="text-left p-4 font-medium text-muted-foreground text-sm">
+                <th className="text-left p-3 md:p-4 font-medium text-muted-foreground text-sm">
                   Đơn hàng
                 </th>
-                <th className="text-left p-4 font-medium text-muted-foreground text-sm">
+                <th className="text-left p-3 md:p-4 font-medium text-muted-foreground text-sm">
                   Khách hàng
                 </th>
-                <th className="text-left p-4 font-medium text-muted-foreground text-sm hidden md:table-cell">
+                <th className="text-left p-3 md:p-4 font-medium text-muted-foreground text-sm hidden md:table-cell">
                   SĐT
                 </th>
-                <th className="text-right p-4 font-medium text-muted-foreground text-sm">
+                <th className="text-right p-3 md:p-4 font-medium text-muted-foreground text-sm hidden md:table-cell">
                   Số lượng
                 </th>
-                <th className="text-right p-4 font-medium text-muted-foreground text-sm">
+                <th className="text-right p-3 md:p-4 font-medium text-muted-foreground text-sm">
                   Tổng tiền
                 </th>
-                <th className="text-left p-4 font-medium text-muted-foreground text-sm">
+                <th className="text-left p-3 md:p-4 font-medium text-muted-foreground text-sm">
                   Trạng thái
                 </th>
-                <th className="text-right p-4 font-medium text-muted-foreground text-sm">
+                <th className="text-right p-3 md:p-4 font-medium text-muted-foreground text-sm">
                   Thao tác
                 </th>
               </tr>
@@ -115,7 +115,7 @@ export function OrderList() {
                   key={order.id}
                   className="border-b last:border-0 hover:bg-muted/20 transition-colors"
                 >
-                  <td className="p-4">
+                  <td className="p-3 md:p-4">
                     <div>
                       <p className="font-medium text-foreground">
                         #{order.id.slice(-8).toUpperCase()}
@@ -131,28 +131,28 @@ export function OrderList() {
                       </p>
                     </div>
                   </td>
-                  <td className="p-4">
+                  <td className="p-3 md:p-4">
                     <p className="font-medium truncate max-w-[150px]">
                       {order.shippingName}
                     </p>
                   </td>
-                  <td className="p-4 hidden md:table-cell">
+                  <td className="p-3 md:p-4 hidden md:table-cell">
                     <p className="text-sm text-muted-foreground tabular-nums">
                       {order.shippingPhone}
                     </p>
                   </td>
-                  <td className="p-4 text-right">
+                  <td className="p-3 md:p-4 text-right hidden md:table-cell">
                     <span className="tabular-nums">{order._count.items}</span>
                   </td>
-                  <td className="p-4 text-right">
+                  <td className="p-3 md:p-4 text-right">
                     <span className="font-medium tabular-nums">
                       {formatPrice(order.total)}
                     </span>
                   </td>
-                  <td className="p-4">
+                  <td className="p-3 md:p-4">
                     <OrderStatusBadge status={order.status} />
                   </td>
-                  <td className="p-4 text-right">
+                  <td className="p-3 md:p-4 text-right">
                     <OrderActions
                       orderId={order.id}
                       currentStatus={order.status}
@@ -184,25 +184,25 @@ function OrderListSkeleton() {
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/30">
-              <th className="p-4">
+              <th className="p-3 md:p-4">
                 <Skeleton className="h-3 w-20 rounded-full" />
               </th>
-              <th className="p-4">
+              <th className="p-3 md:p-4">
                 <Skeleton className="h-3 w-24 rounded-full" />
               </th>
-              <th className="p-4 hidden md:table-cell">
+              <th className="p-3 md:p-4 hidden md:table-cell">
                 <Skeleton className="h-3 w-16 rounded-full" />
               </th>
-              <th className="p-4">
+              <th className="p-3 md:p-4 hidden md:table-cell">
                 <Skeleton className="ml-auto h-3 w-14 rounded-full" />
               </th>
-              <th className="p-4">
+              <th className="p-3 md:p-4">
                 <Skeleton className="ml-auto h-3 w-14 rounded-full" />
               </th>
-              <th className="p-4">
+              <th className="p-3 md:p-4">
                 <Skeleton className="h-3 w-16 rounded-full" />
               </th>
-              <th className="p-4">
+              <th className="p-3 md:p-4">
                 <Skeleton className="ml-auto h-3 w-14 rounded-full" />
               </th>
             </tr>
@@ -210,28 +210,28 @@ function OrderListSkeleton() {
           <tbody>
             {Array.from({ length: 6 }).map((_, i) => (
               <tr key={i} className="border-b last:border-0">
-                <td className="p-4">
+                <td className="p-3 md:p-4">
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-24 rounded-full" />
                     <Skeleton className="h-3 w-32 rounded-full" />
                   </div>
                 </td>
-                <td className="p-4">
+                <td className="p-3 md:p-4">
                   <Skeleton className="h-4 w-28 rounded-full md:w-40" />
                 </td>
-                <td className="p-4 hidden md:table-cell">
+                <td className="p-3 md:p-4 hidden md:table-cell">
                   <Skeleton className="h-4 w-28 rounded-full" />
                 </td>
-                <td className="p-4">
+                <td className="p-3 md:p-4 hidden md:table-cell">
                   <Skeleton className="ml-auto h-4 w-10 rounded-full" />
                 </td>
-                <td className="p-4">
+                <td className="p-3 md:p-4">
                   <Skeleton className="ml-auto h-4 w-20 rounded-full" />
                 </td>
-                <td className="p-4">
+                <td className="p-3 md:p-4">
                   <Skeleton className="h-7 w-24 rounded-full" />
                 </td>
-                <td className="p-4">
+                <td className="p-3 md:p-4">
                   <Skeleton className="ml-auto h-8 w-8 rounded-md" />
                 </td>
               </tr>

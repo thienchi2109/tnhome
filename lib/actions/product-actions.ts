@@ -5,15 +5,83 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { unstable_cache } from "next/cache";
 import { Prisma } from "@prisma/client";
-import type { PaginationParams } from "@/lib/constants";
+import { normalizePaginationParams, type PaginationParams } from "@/lib/constants";
 import { toSlug } from "@/lib/utils";
 import type { ActionResult, AdminProductFilterOptions, PaginatedProducts, ProductFilterOptions } from "./types";
 import { requireAdmin } from "./admin-auth";
 import { isUnauthorizedError } from "./errors";
 
-// Pagination constants
-const DEFAULT_PAGE = 1;
-const DEFAULT_PAGE_SIZE = 20;
+const PRODUCT_ORDER_BY: Prisma.ProductOrderByWithRelationInput[] = [
+  { createdAt: "desc" },
+  { id: "desc" },
+];
+
+function normalizeSearchTerm(value?: string, maxLength = 200): string | undefined {
+  const normalized = value?.trim().slice(0, maxLength);
+  return normalized ? normalized : undefined;
+}
+
+function normalizeCategoryFilters(categories?: string[]): string[] | undefined {
+  if (!categories || categories.length === 0) {
+    return undefined;
+  }
+
+  const deduped = Array.from(
+    new Set(categories.map((category) => category.trim()).filter(Boolean))
+  );
+  return deduped.length > 0 ? deduped : undefined;
+}
+
+// TODO: RepeatableRead can cause P2034 serialization failures under concurrent
+// writes. Low risk at current traffic, but if storefront 500s appear under load,
+// add a single-retry wrapper here. See also order-actions.ts:363.
+async function paginatedProductQuery(
+  rawPage: number,
+  pageSize: number,
+  whereClause: Prisma.ProductWhereInput
+): Promise<PaginatedProducts> {
+  const result = await prisma.$transaction(
+    async (tx) => {
+      const totalItems = await tx.product.count({ where: whereClause });
+      const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+      const page = Math.max(1, Math.min(rawPage, totalPages));
+      const skip = (page - 1) * pageSize;
+
+      const products = await tx.product.findMany({
+        where: whereClause,
+        orderBy: PRODUCT_ORDER_BY,
+        skip,
+        take: pageSize,
+        select: {
+          id: true,
+          externalId: true,
+          name: true,
+          description: true,
+          price: true,
+          category: true,
+          images: true,
+          isActive: true,
+          stock: true,
+          lowStockThreshold: true,
+          createdAt: true,
+        },
+      });
+
+      return { products, page, totalItems, totalPages };
+    },
+    { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
+  );
+
+  return {
+    products: result.products,
+    pagination: {
+      page: result.page,
+      pageSize,
+      totalItems: result.totalItems,
+      totalPages: result.totalPages,
+    },
+  };
+}
 
 // Validation schemas
 const productSchema = z.object({
@@ -181,35 +249,37 @@ export async function getProducts(
 ): Promise<PaginatedProducts> {
   await requireAdmin();
 
-  const { page: rawPage, pageSize } = params ?? {
-    page: DEFAULT_PAGE,
-    pageSize: DEFAULT_PAGE_SIZE,
-  };
+  const { page: rawPage, pageSize } = normalizePaginationParams(
+    params?.page,
+    params?.pageSize,
+    { allowedPageSizes: null }
+  );
+  const searchTerm = normalizeSearchTerm(filters?.search, 100);
+  const categories = normalizeCategoryFilters(filters?.categories);
 
   const whereClause: Prisma.ProductWhereInput = {
     ...(filters?.status === "active" && { isActive: true }),
     ...(filters?.status === "inactive" && { isActive: false }),
-    ...(filters?.search && {
+    ...(searchTerm && {
       OR: [
-        { name: { contains: filters.search, mode: "insensitive" as const } },
-        { description: { contains: filters.search, mode: "insensitive" as const } },
+        { name: { contains: searchTerm, mode: "insensitive" as const } },
+        { description: { contains: searchTerm, mode: "insensitive" as const } },
       ],
     }),
-    ...(filters?.categories && filters.categories.length > 0 && {
-      category: { in: filters.categories },
+    ...(categories && {
+      category: { in: categories },
     }),
   };
 
-  const totalItems = await prisma.product.count({ where: whereClause });
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const page = Math.max(1, Math.min(rawPage, totalPages));
-  const skip = (page - 1) * pageSize;
+  return paginatedProductQuery(rawPage, pageSize, whereClause);
+}
 
-  const products = await prisma.product.findMany({
-    where: whereClause,
-    orderBy: { createdAt: "desc" },
-    skip,
-    take: pageSize,
+// Get Single Product (admin)
+export async function getProduct(id: string) {
+  await requireAdmin();
+
+  const product = await prisma.product.findUnique({
+    where: { id },
     select: {
       id: true,
       externalId: true,
@@ -225,23 +295,16 @@ export async function getProducts(
     },
   });
 
-  return {
-    products,
-    pagination: {
-      page,
-      pageSize,
-      totalItems,
-      totalPages,
-    },
-  };
+  return product;
 }
 
-// Get Single Product (admin)
-export async function getProduct(id: string) {
-  await requireAdmin();
-
-  const product = await prisma.product.findUnique({
-    where: { id },
+// Get Single Active Product for Storefront (public)
+export async function getActiveProductById(id: string) {
+  const product = await prisma.product.findFirst({
+    where: {
+      id,
+      isActive: true,
+    },
     select: {
       id: true,
       externalId: true,
@@ -286,26 +349,26 @@ export async function getActiveProductsPaginated(
   params?: PaginationParams,
   filters?: string | ProductFilterOptions
 ): Promise<PaginatedProducts> {
-  const { page: rawPage, pageSize } = params ?? {
-    page: DEFAULT_PAGE,
-    pageSize: DEFAULT_PAGE_SIZE,
-  };
+  const { page: rawPage, pageSize } = normalizePaginationParams(
+    params?.page,
+    params?.pageSize,
+    { allowedPageSizes: null }
+  );
 
   const filterOptions: ProductFilterOptions =
     typeof filters === "string" ? { categories: [filters] } : filters ?? {};
+  const searchTerm = normalizeSearchTerm(filterOptions.search, 100);
+  const categories = normalizeCategoryFilters(filterOptions.categories);
 
   const whereClause: Prisma.ProductWhereInput = {
     isActive: true,
-    ...(filterOptions.search && {
+    ...(searchTerm && {
       OR: [
-        { name: { contains: filterOptions.search, mode: "insensitive" as const } },
-        { description: { contains: filterOptions.search, mode: "insensitive" as const } },
+        { name: { contains: searchTerm, mode: "insensitive" as const } },
+        { description: { contains: searchTerm, mode: "insensitive" as const } },
       ],
     }),
-    ...(filterOptions.categories &&
-      filterOptions.categories.length > 0 && {
-        category: { in: filterOptions.categories },
-      }),
+    ...(categories && { category: { in: categories } }),
     ...((filterOptions.minPrice !== undefined ||
       filterOptions.maxPrice !== undefined) && {
       price: {
@@ -319,40 +382,7 @@ export async function getActiveProductsPaginated(
     }),
   };
 
-  const totalItems = await prisma.product.count({ where: whereClause });
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const page = Math.max(1, Math.min(rawPage, totalPages));
-  const skip = (page - 1) * pageSize;
-
-  const products = await prisma.product.findMany({
-    where: whereClause,
-    orderBy: { createdAt: "desc" },
-    skip,
-    take: pageSize,
-    select: {
-      id: true,
-      externalId: true,
-      name: true,
-      description: true,
-      price: true,
-      category: true,
-      images: true,
-      isActive: true,
-      stock: true,
-      lowStockThreshold: true,
-      createdAt: true,
-    },
-  });
-
-  return {
-    products,
-    pagination: {
-      page,
-      pageSize,
-      totalItems,
-      totalPages,
-    },
-  };
+  return paginatedProductQuery(rawPage, pageSize, whereClause);
 }
 
 // Get Categories

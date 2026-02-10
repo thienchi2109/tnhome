@@ -90,9 +90,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         description="Quản lý danh mục sản phẩm của bạn"
       />
 
-      <main className="flex-1 p-6 space-y-6">
+      <main className="flex-1 p-4 xl:p-6 space-y-6">
         {/* Header Actions */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <p className="text-sm text-muted-foreground">
               {pagination.totalItems > 0 ? (
@@ -108,19 +108,19 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             <Button variant="outline" size="sm" asChild>
               <a href="/api/admin/products/template" download>
                 <Download className="mr-1.5 h-4 w-4" />
-                Tải mẫu
+                <span className="hidden sm:inline">Tải mẫu</span>
               </a>
             </Button>
             <Button variant="outline" size="sm" asChild>
               <Link href={`/admin/products?action=import${filterQuery ? `&${filterQuery}` : ""}`}>
                 <Upload className="mr-1.5 h-4 w-4" />
-                Nhập Excel
+                <span className="hidden sm:inline">Nhập Excel</span>
               </Link>
             </Button>
             <Button asChild className="gap-2">
               <Link href={`/admin/products?action=new${filterQuery ? `&${filterQuery}` : ""}`}>
                 <Plus className="h-4 w-4" />
-                Thêm sản phẩm
+                <span className="hidden sm:inline">Thêm sản phẩm</span>
               </Link>
             </Button>
           </div>
@@ -141,13 +141,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                     <th className="text-left p-4 font-medium text-muted-foreground text-sm">
                       Sản phẩm
                     </th>
-                    <th className="text-left p-4 font-medium text-muted-foreground text-sm">
+                    <th className="text-left p-4 font-medium text-muted-foreground text-sm hidden md:table-cell">
                       Danh mục
                     </th>
                     <th className="text-left p-4 font-medium text-muted-foreground text-sm">
                       Giá
                     </th>
-                    <th className="text-right p-4 font-medium text-muted-foreground text-sm">
+                    <th className="text-right p-4 font-medium text-muted-foreground text-sm hidden lg:table-cell">
                       Tồn kho
                     </th>
                     <th className="text-left p-4 font-medium text-muted-foreground text-sm">
@@ -191,7 +191,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                           </div>
                         </div>
                       </td>
-                      <td className="p-4">
+                      <td className="p-4 hidden md:table-cell">
                         <Badge variant="secondary" className="font-normal">
                           {product.category}
                         </Badge>
@@ -201,7 +201,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                           {formatPrice(product.price)}
                         </span>
                       </td>
-                      <td className="p-4 text-right">
+                      <td className="p-4 text-right hidden lg:table-cell">
                         <span className="font-medium tabular-nums">
                           {product.stock}
                         </span>

@@ -65,6 +65,53 @@ Tùy chọn theo workflow nếu cần gọi trực tiếp container:
 docker exec -it tnhome-web-1 npx prisma@6 migrate deploy
 ```
 
+## F. Áp dụng pg_trgm + tối ưu search/filter trên VPS
+
+Mục tiêu: bật `pg_trgm` để tăng tốc tìm kiếm `ILIKE/%term%` và áp dụng index cho luồng search/filter (customer + admin).
+
+### 1) Backup database trước khi migrate
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T postgres pg_dump -U postgres -d tnhome > backup-tnhome-$(date +%F-%H%M%S).sql
+```
+
+### 2) Bật extension pg_trgm
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres -d tnhome -f - < prisma/migrations/enable_pg_trgm_extension.sql
+```
+
+### 3) Áp dụng migration index cho search/filter
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres -d tnhome -f - < prisma/migrations/harden_search_filter_indexes.sql
+```
+
+### 4) Verify sau khi migrate
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres -d tnhome -c "SELECT extname, extversion FROM pg_extension WHERE extname='pg_trgm';"
+docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres -d tnhome -c "SELECT indexname FROM pg_indexes WHERE tablename IN ('Product','Order') AND indexname ILIKE '%trgm%' ORDER BY indexname;"
+```
+
+Kỳ vọng:
+- Có 1 dòng `pg_trgm` trong `pg_extension`.
+- Có các index dạng `*_trgm_idx` cho `Product` và `Order`.
+
+### 5) PowerShell note (nếu VPS dùng PowerShell)
+
+PowerShell không dùng được `<` redirect như bash. Dùng pipe:
+
+```powershell
+Get-Content -Raw "prisma/migrations/enable_pg_trgm_extension.sql" |
+  docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres -d tnhome -f -
+
+Get-Content -Raw "prisma/migrations/harden_search_filter_indexes.sql" |
+  docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres -d tnhome -f -
+```
+
+Tham khảo chi tiết: `docs/pg_trgm-extension-migration.md`.
+
 ## 1. Cập nhật `.env` trên VPS (khóa Clerk)
 
 Chạy trong cùng thư mục có `docker-compose.prod.yml`:
