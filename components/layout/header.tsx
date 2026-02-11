@@ -52,7 +52,7 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
   const { openCart } = useCartStore();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { user, isLoading, signOut } = useAuth();
+  const { user, isLoading, isAdmin, signOut } = useAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -162,14 +162,16 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
                         </div>
                       ) : (
                         <div className="flex flex-col gap-2 px-2">
-                          <Link
-                            href="/admin"
-                            onClick={() => setIsSidebarOpen(false)}
-                            className="flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-                          >
-                            <Settings className="h-4 w-4" />
-                            Quản trị viên
-                          </Link>
+                          {isAdmin && (
+                            <Link
+                              href="/admin"
+                              onClick={() => setIsSidebarOpen(false)}
+                              className="flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+                            >
+                              <Settings className="h-4 w-4" />
+                              Quản trị viên
+                            </Link>
+                          )}
                           <Button
                             variant="ghost"
                             className="w-full justify-start gap-2"
@@ -267,13 +269,15 @@ export function Header({ categoriesWithSlugs = [] }: HeaderProps) {
                           {user.email ?? "Tài khoản"}
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin" className="flex w-full items-center gap-2">
-                            <Settings className="h-4 w-4" />
-                            Quản trị viên
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
+                        {isAdmin && (
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin" className="flex w-full items-center gap-2">
+                              <Settings className="h-4 w-4" />
+                              Quản trị viên
+                            </Link>
+                          </DropdownMenuItem>
+                        )}
+                        {isAdmin && <DropdownMenuSeparator />}
                         <DropdownMenuItem
                           onClick={() => {
                             void signOut();

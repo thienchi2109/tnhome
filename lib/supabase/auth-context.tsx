@@ -12,9 +12,15 @@ import {
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "./client";
 
+const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
 type AuthContextValue = {
   user: User | null;
   isLoading: boolean;
+  isAdmin: boolean;
   signOut: () => Promise<void>;
 };
 
@@ -90,6 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       isLoading,
+      isAdmin:
+        !!user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase()),
       signOut,
     }),
     [user, isLoading, signOut]

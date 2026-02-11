@@ -43,7 +43,7 @@ describe("auth callback route", () => {
     expect(exchangeCodeForSessionMock).toHaveBeenCalledWith("ok");
   });
 
-  it("normalizes absolute same-host next URL to its pathname", async () => {
+  it("normalizes absolute same-host next URL and preserves query params", async () => {
     const request = new Request(
       "http://localhost:3003/auth/callback?code=ok&next=http%3A%2F%2Flocalhost%3A3003%2Fadmin%3Ffrom%3Dcheckout"
     );
@@ -52,7 +52,7 @@ describe("auth callback route", () => {
     const location = getLocation(response);
 
     expect(location.pathname).toBe("/admin");
-    expect(location.search).toBe("");
+    expect(location.search).toBe("?from=checkout");
   });
 
   it("defaults to home path when next is missing", async () => {

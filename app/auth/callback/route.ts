@@ -39,7 +39,7 @@ function normalizeNextPath(nextParam: string | null, origin: string) {
     if (parsed.host !== originHost) {
       return defaultPath;
     }
-    return parsed.pathname.startsWith("/") ? parsed.pathname : defaultPath;
+    return parsed.pathname.startsWith("/") ? `${parsed.pathname}${parsed.search}` : defaultPath;
   } catch {
     // Not an absolute URL, treat it as a relative candidate.
     if (!next.startsWith("/") || next.startsWith("//")) {
