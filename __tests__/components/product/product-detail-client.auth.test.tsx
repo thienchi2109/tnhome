@@ -8,7 +8,7 @@ const { useAuthMock, toastInfoMock } = vi.hoisted(() => ({
   toastInfoMock: vi.fn(),
 }));
 
-vi.mock("@clerk/nextjs", () => ({
+vi.mock("@/lib/supabase/auth-context", () => ({
   useAuth: useAuthMock,
 }));
 
@@ -43,14 +43,21 @@ const product: Product = {
 };
 
 describe("ProductDetailClient auth add-to-cart flow", () => {
+  const signOutMock = vi.fn();
+
   beforeEach(() => {
     useCartStore.setState({ items: [], isOpen: false });
     useAuthMock.mockReset();
     toastInfoMock.mockReset();
+    signOutMock.mockReset();
   });
 
   it("shows a login prompt and does not add to cart for guests", () => {
-    useAuthMock.mockReturnValue({ userId: null });
+    useAuthMock.mockReturnValue({
+      user: null,
+      isLoading: false,
+      signOut: signOutMock,
+    });
 
     render(<ProductDetailClient product={product} />);
 
@@ -62,7 +69,11 @@ describe("ProductDetailClient auth add-to-cart flow", () => {
   });
 
   it("adds to cart when the customer is signed in", () => {
-    useAuthMock.mockReturnValue({ userId: "user_123" });
+    useAuthMock.mockReturnValue({
+      user: { id: "user_123" },
+      isLoading: false,
+      signOut: signOutMock,
+    });
 
     render(<ProductDetailClient product={product} />);
 

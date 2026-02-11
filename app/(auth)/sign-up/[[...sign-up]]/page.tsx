@@ -1,20 +1,28 @@
-import { SignUp } from "@clerk/nextjs";
-import { AuthShell } from "@/components/auth/auth-shell";
-import { clerkAuthAppearance } from "@/lib/clerk-auth-appearance";
+import { redirect } from "next/navigation";
 
-export default function SignUpPage() {
-  return (
-    <AuthShell
-      eyebrow="TN HOME STUDIO"
-      heading="Tạo tài khoản cá nhân."
-      description="Đăng ký để mở khóa hành trình mua sắm liền mạch, lưu gu nội thất riêng và nhận cập nhật ưu đãi mới nhất."
-      highlights={[
-        "Thiết lập tài khoản trong vài bước, bảo mật và nhanh chóng.",
-        "Đồng bộ giỏ hàng và lịch sử mua sắm giữa điện thoại và máy tính.",
-        "Nhận thông báo về bộ sưu tập mới phù hợp phong cách của bạn.",
-      ]}
-    >
-      <SignUp appearance={clerkAuthAppearance} />
-    </AuthShell>
-  );
+type SignUpPageProps = {
+  searchParams: Promise<{
+    redirect_url?: string;
+  }>;
+};
+
+function normalizeRedirectPath(raw: string | undefined): string {
+  if (!raw) return "";
+  try {
+    const parsed = new URL(raw, "http://dummy");
+    const path = `${parsed.pathname}${parsed.search}`;
+    return path.startsWith("/") ? path : "";
+  } catch {
+    return raw.startsWith("/") ? raw : "";
+  }
+}
+
+export default async function SignUpPage({ searchParams }: SignUpPageProps) {
+  const params = await searchParams;
+  const validatedPath = normalizeRedirectPath(params.redirect_url);
+  const redirectTarget = validatedPath
+    ? `/sign-in?redirect_url=${encodeURIComponent(validatedPath)}`
+    : "/sign-in";
+
+  redirect(redirectTarget);
 }

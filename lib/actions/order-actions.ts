@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
+import { createClient } from "@/lib/supabase/server";
 import { Prisma } from "@prisma/client";
 import type { ActionResult } from "./types";
 import { isOrderStatus, type OrderStatus } from "@/types";
@@ -61,6 +61,13 @@ function normalizeOrderStatus(status?: string): OrderStatus | undefined {
   return normalizedStatus;
 }
 
+function shouldRelink(existingUserId: string | null, authUserId: string): boolean {
+  if (!existingUserId) return true;
+  if (existingUserId.startsWith("user_")) return true;
+  if (existingUserId === authUserId) return false;
+  return false;
+}
+
 // Find or create customer with deduplication
 async function findOrCreateCustomer(
   tx: Prisma.TransactionClient,
@@ -70,7 +77,7 @@ async function findOrCreateCustomer(
     email?: string;
     address: string;
   },
-  clerkUserId: string | null
+  authUserId: string | null
 ) {
   // Priority 1: Match by phone (primary identifier)
   let customer = await tx.customer.findUnique({
@@ -78,21 +85,26 @@ async function findOrCreateCustomer(
   });
 
   if (customer) {
+    const relinkUserId =
+      authUserId && shouldRelink(customer.userId, authUserId)
+        ? authUserId
+        : undefined;
+
     return tx.customer.update({
       where: { id: customer.id },
       data: {
         name: input.name,
         email: input.email || null,
         address: input.address,
-        ...(clerkUserId && !customer.userId ? { userId: clerkUserId } : {}),
+        ...(relinkUserId ? { userId: relinkUserId } : {}),
       },
     });
   }
 
   // Priority 2: Match by userId (logged-in user with new phone)
-  if (clerkUserId) {
+  if (authUserId) {
     customer = await tx.customer.findUnique({
-      where: { userId: clerkUserId },
+      where: { userId: authUserId },
     });
 
     if (customer) {
@@ -120,7 +132,7 @@ async function findOrCreateCustomer(
   // No match - create new customer
   return tx.customer.create({
     data: {
-      userId: clerkUserId,
+      userId: authUserId,
       name: input.name,
       phone: input.phone,
       email: input.email || null,
@@ -137,8 +149,12 @@ export async function createOrder(
     // 1. Validate input
     const validated = createOrderSchema.parse(input);
 
-    // 2. Get Clerk userId (null if guest)
-    const { userId: clerkUserId } = await auth();
+    // 2. Get auth user ID (null if guest)
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const authUserId = user?.id ?? null;
 
     // 3. Run everything in an interactive transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -208,7 +224,7 @@ export async function createOrder(
           email: validated.customerEmail,
           address: validated.customerAddress,
         },
-        clerkUserId
+        authUserId
       );
 
       // Create order with nested writes
@@ -216,7 +232,7 @@ export async function createOrder(
         data: {
           total,
           status: "PENDING",
-          userId: clerkUserId,
+          userId: authUserId,
           customerId: customer.id,
           shippingName: validated.customerName,
           shippingPhone: validated.customerPhone,
@@ -313,7 +329,11 @@ export async function getOrder(orderId: string) {
 
 // Get Customer by Phone (for pre-filling checkout form)
 export async function getCustomerByAuth() {
-  const { userId } = await auth();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const userId = user?.id;
 
   if (!userId) return null;
 

@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
-import { viVN } from "@clerk/localizations";
 import { Toaster } from "@/components/ui/sonner";
-import { resolveClerkJSUrl } from "@/lib/clerk-provider-options";
+import { AuthProvider } from "@/lib/supabase/auth-context";
 import "./globals.css";
 
 const inter = Inter({
@@ -35,20 +33,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const clerkJSUrl = resolveClerkJSUrl({
-    nodeEnv: process.env.NODE_ENV,
-    publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-    explicitClerkJsUrl: process.env.NEXT_PUBLIC_CLERK_JS_URL,
-  });
-
   return (
-    <ClerkProvider localization={viVN} clerkJSUrl={clerkJSUrl}>
-      <html lang="vi" className={inter.variable}>
-        <body className="min-h-screen bg-background font-sans antialiased">
+    <html lang="vi" className={inter.variable}>
+      <body className="min-h-screen bg-background font-sans antialiased">
+        <AuthProvider>
           {children}
           <Toaster position="top-center" richColors />
-        </body>
-      </html>
-    </ClerkProvider>
+        </AuthProvider>
+      </body>
+    </html>
   );
 }

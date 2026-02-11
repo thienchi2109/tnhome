@@ -38,7 +38,8 @@ Clerk authentication is too complex for production deployment — custom domain 
 Browser client using `createBrowserClient()` from `@supabase/ssr`.
 
 ### Step 1.3: Create `lib/supabase/server.ts` (~30 lines)
-Server client using `createServerClient()` with `cookies()` from `next/headers`.
+Server client using `createServerClient()` with `await cookies()` from `next/headers`.
+- **Critical**: `cookies()` is async in Next.js 15 — must be `await`ed before passing to `createServerClient()`
 - `setAll` wrapped in try/catch (read-only in Server Components, middleware handles refresh)
 
 ### Step 1.4: Create `lib/supabase/middleware.ts` (~45 lines)
@@ -51,7 +52,7 @@ Server client using `createServerClient()` with `cookies()` from `next/headers`.
 Replace `clerkMiddleware` + `clerkClient().users.getUser()` with Supabase session refresh.
 
 **Current** (48 lines): External API call to Clerk on every `/admin` request
-**New** (~35 lines): Read email from JWT — zero external calls
+**New** (~35 lines): Read email from `getUser()` JWT result — replaces Clerk API call with a single Supabase Auth call (managed, lower latency than Clerk, but still a network request to validate the token)
 
 - Import `updateSession` from `@/lib/supabase/middleware`
 - Admin route check: `user.email` from `getUser()` result (already in JWT)
@@ -161,7 +162,27 @@ Add `lh3.googleusercontent.com` to `images.remotePatterns` (Google avatar photos
 
 ## Data Migration Note
 
-`Customer.userId` and `Order.userId` store Clerk IDs (`user_xxxx`). After migration, new sessions produce Supabase UUIDs. For pre-production: existing records become orphaned (acceptable — orders are looked up by `orderId`, not `userId`). If needed later, a one-time script can map Clerk emails → Supabase UUIDs.
+`Customer.userId` and `Order.userId` store Clerk IDs (`user_xxxx`). After migration, new sessions produce Supabase UUIDs.
+
+### Customer Re-linking Strategy
+
+Existing customers have `userId = 'user_xxxx'` (Clerk format). When they log in via Supabase, their new UUID won't match. The `findOrCreateCustomer` function only sets `userId` when `!customer.userId`, so existing customers will never be re-linked automatically.
+
+**Fix required in `findOrCreateCustomer`**: When a logged-in user matches by phone, always update `userId` to the current auth ID (not only when `userId` is null). This handles both:
+1. Guests who later create an account (userId: null → Supabase UUID)
+2. Returning Clerk users who now authenticate via Supabase (userId: user_xxx → Supabase UUID)
+
+```typescript
+// BEFORE (broken for migration):
+...(clerkUserId && !customer.userId ? { userId: clerkUserId } : {}),
+
+// AFTER (always re-link to current auth provider):
+...(supabaseUserId ? { userId: supabaseUserId } : {}),
+```
+
+For `Order.userId`: Historical orders retain their Clerk IDs. This is acceptable — orders are looked up by `orderId`, not `userId`. New orders will use Supabase UUIDs.
+
+For pre-production: If a one-time bulk migration is preferred, a script can map Clerk emails → Supabase UUIDs via the Supabase Admin API and update `Customer.userId` in batch.
 
 ## File Summary
 
